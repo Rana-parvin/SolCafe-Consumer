@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
-import 'package:solcafe/dope%20introduction/dope%20main.dart';
-import 'package:solcafe/working%20with%20bottombar/bottom%20nav%20provider/bottom%20nav_provider.dart';
-import 'package:solcafe/working%20with%20bottombar/bottom%20nav%20stylish.dart';
+import 'package:solcafe/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:solcafe/features/home/presentation/providers/bottom_nav_provider.dart';
+import 'package:solcafe/features/home/presentation/screens/main_screen.dart';
 
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});
