@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:solcafe/working%20with%20search%20bar/list%20of%20searchitem.dart';
+import 'package:solcafe/crud/view%20in%20detail.dart';
+
 
 class FirestoreSearchDelegate extends SearchDelegate<String> {
   @override
@@ -118,10 +120,23 @@ class FirestoreSearchDelegate extends SearchDelegate<String> {
               child: ListTile(
                 contentPadding: const EdgeInsets.all(12),
                 leading: image.isNotEmpty
-                    ? Image.network(image, width: 60, height: 60, fit: BoxFit.cover)
+                    ? (image.startsWith('http://') || image.startsWith('https://')
+                        ? Image.network(image, width: 60, height: 60, fit: BoxFit.cover)
+                        : Image.asset(image, width: 60, height: 60, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.coffee, size: 60)))
                     : const Icon(Icons.image, size: 60),
                 title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text("Price: ₹${price.toStringAsFixed(2)}"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Viewindetail(
+                        itemid: docs[index].id,
+                        itemdata: data,
+                      ),
+                    ),
+                  );
+                },
               ),
             );
           },

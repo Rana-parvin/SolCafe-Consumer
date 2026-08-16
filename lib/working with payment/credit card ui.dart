@@ -315,20 +315,16 @@ class _CreditcardState extends State<Creditcard>
     required String image,
     required String itemname,
   }) async {
-    String rawCardNumber = cardnumbercontroller.text.replaceAll(' ', '');
-    print('Card Number: $rawCardNumber');
-    print('Expiry Date: $expirydate');
-    print('CVV: $cvv');
-    print('Card Holder Name: $cardholdername');
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
-
       final firestore = FirebaseFirestore.instance;
+      final batch = firestore.batch();
 
-      // Create order document
       DocumentReference orderRef = firestore.collection("making_orders").doc();
+      DocumentReference itemRef = firestore.collection("ordered items").doc();
+      DocumentReference paymentRef = firestore.collection("payments").doc();
 
-      await orderRef.set({
+      batch.set(orderRef, {
         "userid": uid,
         "item id": itemId,
         "size": size,
@@ -337,7 +333,7 @@ class _CreditcardState extends State<Creditcard>
         "date": DateTime.now(),
       });
 
-      await firestore.collection("ordered items").doc().set({
+      batch.set(itemRef, {
         "order id": orderRef.id,
         "item id": itemId,
         "size": size,
@@ -347,10 +343,10 @@ class _CreditcardState extends State<Creditcard>
         "userid": uid,
         "itemname": itemname,
         "image": image,
-        "payment method":"credit card"
+        "payment method": "credit card"
       });
 
-      await firestore.collection("payments").doc().set({
+      batch.set(paymentRef, {
         "order id": orderRef.id,
         "item id": itemId,
         "size": size,
@@ -360,12 +356,13 @@ class _CreditcardState extends State<Creditcard>
         "userid": uid,
       });
 
-      print("Order created successfully!");
+      await batch.commit();
     } catch (e) {
-      print("Error ordering the item $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error ordering the item $e")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error ordering the item $e")),
+        );
+      }
     }
   }
 }

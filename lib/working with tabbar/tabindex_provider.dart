@@ -1,3 +1,15 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final tabIndexProvider = StateProvider<int>((ref) => 0); 
+class TabIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setIndex(int newIndex) => state = newIndex;
+}
+
+final tabIndexProvider = NotifierProvider<TabIndexNotifier, int>(TabIndexNotifier.new);
+
+
+
+
+ 

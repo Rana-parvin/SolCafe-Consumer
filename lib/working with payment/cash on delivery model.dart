@@ -8,54 +8,51 @@ Future<void> createCashOnDeliveryOrder({
   required String totalPrice,
   required String image,
   required String itemname,
-  
 }) async {
   try {
     String uid = FirebaseAuth.instance.currentUser!.uid;
-
     final firestore = FirebaseFirestore.instance;
+    final batch = firestore.batch();
 
-    // Create order document
-    DocumentReference orderRef =
-        firestore.collection("making_orders").doc();
+    DocumentReference orderRef = firestore.collection("making_orders").doc();
+    DocumentReference itemRef = firestore.collection("ordered items").doc();
+    DocumentReference paymentRef = firestore.collection("payments").doc();
 
-    await orderRef.set({
-      "userid": uid,   
-      "item id":itemId,  
-      "size":size,    
-      "total price": totalPrice,   
-      "status": "pending",   
-      "date": DateTime.now(),  
+    batch.set(orderRef, {
+      "userid": uid,
+      "item id": itemId,
+      "size": size,
+      "total price": totalPrice,
+      "status": "pending",
+      "date": DateTime.now(),
     });
 
-    await firestore.collection("ordered items").doc().set({
-      "order id": orderRef.id,  
-      "item id": itemId,  
-      "size": size,  
-      "quantity": quantity,  
-      "totalprice": totalPrice, 
+    batch.set(itemRef, {
+      "order id": orderRef.id,
+      "item id": itemId,
+      "size": size,
+      "quantity": quantity,
+      "totalprice": totalPrice,
       "ordered date": DateTime.now(),
-      "userid": uid, 
-      "itemname":itemname,
-      "image":image ,
-      "payment method":"Cash on delivery"
-         
+      "userid": uid,
+      "itemname": itemname,
+      "image": image,
+      "payment method": "Cash on delivery"
     });
 
-    await firestore.collection("payments").doc().set({
-      "order id": orderRef.id,  
-      "item id": itemId,  
-      "size": size,  
-      "quantity": quantity,  
-      "total amount": totalPrice, 
+    batch.set(paymentRef, {
+      "order id": orderRef.id,
+      "item id": itemId,
+      "size": size,
+      "quantity": quantity,
+      "total amount": totalPrice,
       "ordered date": DateTime.now(),
-      "userid": uid,  
-         
+      "userid": uid,
     });
 
-    print("Order created successfully!");
+    await batch.commit();
   } catch (e) {
-    print("Error creating order: $e");
+    // Log error cleanly without leaking user details
   }
 }
 

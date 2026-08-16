@@ -1,3 +1,14 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final bottomNavProvider = StateProvider<int>((ref) => 0);
+class BottomNavNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setIndex(int newIndex) => state = newIndex;
+}
+
+final bottomNavProvider = NotifierProvider<BottomNavNotifier, int>(BottomNavNotifier.new);
+
+
+
+

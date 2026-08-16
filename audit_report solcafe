@@ -1,0 +1,197 @@
+# SolCafe Codebase Audit Report
+
+This report presents a production-level audit of the SolCafe coffee shop mobile application codebase. The review covers app architecture, user flows, databases, security, performance, code quality, UI/UX, and dependencies.
+
+---
+
+## 1. Executive Summary & Health Scores
+
+The SolCafe application has a solid styling foundation with custom themes and basic screen flows. However, several **critical issues** in data structures, navigation flows, database queries, and security stand in the way of production readiness.
+
+### Health Score Card
+
+| Category | Score | Status | Description |
+| :--- | :--- | :--- | :--- |
+| **Architecture** | **4.5 / 10** | ⚠️ Needs Refactoring | Mixed state management patterns; inconsistent route stacks; directory/file naming violations. |
+| **Security** | **3.0 / 10** | ❌ Critical Risks | Plaintext printing of sensitive credit card details (PAN, CVV) to console logs; lack of proper privacy data cleanup on logout. |
+| **Performance** | **7.0 / 10** | ⚠️ Optimized | Lightweight overall, but suffers from client-side category filtering, an artificial 7-second splash delay, and a 3-second delay on cart additions. |
+| **Code Quality** | **5.0 / 10** | ⚠️ Clean Up | Dead code (unused wrappers, index providers, duplicate selectors); hardcoded values; YAML errors. |
+| **UI/UX Consistency**| **5.5 / 10** | ⚠️ Polish Required | High friction on cart adding; broken search list rendering; missing redirection flows in payments; low-contrast text elements. |
+| **Maintainability** | **5.0 / 10** | ⚠️ Hard to Maintain | Spaces in file/directory names; duplicate capitalization utility code; non-atomic database operations. |
+| **Production Readiness**| **3.0 / 10** | ❌ Not Ready | Inability to use the Cart due to type and query mismatches; boilerplate test suite failures; unimplemented features. |
+
+---
+
+## 2. Critical & High Severity Issues
+
+Below is a detailed breakdown of the most critical issues identified during the audit, complete with code analysis, impact evaluations, and recommended fixes.
+
+```carousel
+### [Critical] Cart Query & Type Mismatch
+- **File:** [carts.dart](file:///c:/solcafe/lib/working%20with%20cart/carts.dart#L37-L43) and [cart_service.dart](file:///c:/solcafe/lib/cart%20services/cart%20service.dart)
+- **Problem:**
+  The cart queries filter by matching `userId` to a `DocumentReference` to `/users/uid`. However, the model saves `userId` as a plain `String`. Additionally, `carts.dart` casts `itemId` (which is stored as a string) to `DocumentReference` at runtime:
+  ```dart
+  final itemRef = data['itemId'] as DocumentReference; // Fails!
+  ```
+- **Impact:**
+  The cart screen is completely broken. It will either appear permanently empty (due to comparing String to DocumentReference) or crash immediately with a type cast exception if documents exist.
+- **Solution:**
+  Standardize `userId` and `itemId` to be strings across both writing and reading.
+
+<!-- slide -->
+### [Critical] Plaintext Sensitive Card Logging
+- **File:** [credit_card_ui.dart](file:///c:/solcafe/lib/working%20with%20payment/credit%20card%20ui.dart#L318-L322)
+- **Problem:**
+  The raw card number, expiry, and CVV are printed to console logs via `print()` inside the `placingorder` method:
+  ```dart
+  print('Card Number: $rawCardNumber');
+  print('Expiry Date: $expirydate');
+  print('CVV: $cvv');
+  ```
+- **Impact:**
+  Compromises user security and violates **PCI-DSS compliance**. These credentials can leak in production console logs, bug tracking tools, and crash reports.
+- **Solution:**
+  Remove the `print()` calls of sensitive card details immediately.
+
+<!-- slide -->
+### [Critical] Nested Navigation & UI Overlay
+- **File:** [login.dart](file:///c:/solcafe/lib/user%20authentication/login.dart#L45-L50) & [auth_wrapper.dart](file:///c:/solcafe/lib/user%20authentication/auth%20wrapper.dart)
+- **Problem:**
+  On successful login, the application performs a `Navigator.pushReplacement` to `Bottomnavstylish()`. At the exact same time, `AuthWrapper` detects the auth state change and rebuilds the root view, switching it to `BottomNavHolder()`.
+- **Impact:**
+  This results in two duplicate trees of `Bottomnavstylish` running on top of each other. It causes double Scaffolds, duplicate page controllers, rendering anomalies, drawer errors, and broken navigation loops.
+- **Solution:**
+  Avoid manual routing to `Bottomnavstylish` on successful auth. Pop the auth routes or simply let `AuthWrapper` change the root view automatically.
+
+<!-- slide -->
+### [Critical] Hanged Stack on Sign Out
+- **File:** [my_account.dart](file:///c:/solcafe/lib/user%20authentication/my%20account.dart#L152-L155)
+- **Problem:**
+  Clicking "Sign Out" triggers `signOut()` but fails to navigate the user or clean the view stack.
+- **Impact:**
+  The `MyAccount` screen stays at the top of the stack, but the current user is now null. The screen will crash or display null placeholder data, leaving the user with no way to return to the login interface.
+- **Solution:**
+  Clear the navigation stack and redirect using `pushAndRemoveUntil` when signing out:
+  ```dart
+  await FirebaseAuth.instance.signOut();
+  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const Login()), (route) => false);
+  ```
+```
+
+---
+
+## 3. High & Medium Severity Issues
+
+### Data Inconsistency: Profile Name Updates
+* **Affected File:** [edit_profile.dart](file:///c:/solcafe/lib/user%20authentication/edit%20profile.dart) & [sign_up.dart](file:///c:/solcafe/lib/user%20authentication/sign%20up.dart)
+* **Description:** Registration writes the name key to Firestore as `username`, but profile updates write to `name`. Furthermore, updating the profile updates Firestore but does not call `user.updateDisplayName()` in Firebase Auth, which is what the Drawer and My Account screens read.
+* **Impact:** The profile update feature is broken. Edited names are stored in a mismatched key and will not show up in the Drawer or Account screen.
+* **Solution:** Keep key names consistent (e.g. `'name'`) and sync with Firebase Auth display name:
+  ```dart
+  await user.updateDisplayName(name.text);
+  await FirebaseFirestore.instance.collection("users").doc(user.uid).update({"name": name.text});
+  ```
+
+### Broken Search: Local Asset Network Call Crash & Missing Interaction
+* **Affected File:** [custom_saerch.dart](file:///c:/solcafe/lib/working%20with%20search%20bar/custom%20saerch.dart)
+* **Description:** Search result images are loaded via `Image.network(image)` even though the app utilizes local assets (e.g. `assets/images/...`), which causes a crash. The search result tiles also lack an `onTap` property.
+* **Impact:** Search results crash during image rendering, and even if they render, users cannot tap to view or order the item.
+* **Solution:** Replace `Image.network` with `Image.asset` for local images and implement an `onTap` to push `Viewindetail()`.
+
+### Missing Wallet UI & Blocked Payment Flows
+* **Affected Files:** [All_payments.dart](file:///c:/solcafe/lib/working%20with%20payment/All%20payments.dart) & [payment_method.dart](file:///c:/solcafe/lib/working%20with%20payment/payment%20method.dart)
+* **Description:** The "Payment" bottom nav tab is completely mocked with a static string. Additionally, paying via UPI or Net Banking inserts data into Firestore but leaves the user stuck on the payment selection page without feedback.
+* **Impact:** The payments ledger is non-functional. Payment selection flows hang and cause user confusion.
+* **Solution:** Implement a `StreamBuilder` for payment history in `Allpayments` and route to an order success screen upon completing net-banking or UPI orders.
+
+### Non-Atomic Order Database Writes
+* **Affected Files:** [cash_on_delivery_model.dart](file:///c:/solcafe/lib/working%20with%20payment/cash%20on%20delivery%20model.dart) & [credit_card_ui.dart](file:///c:/solcafe/lib/working%20with%20payment/credit%20card%20ui.dart)
+* **Description:** Order placement writes to `making_orders`, `ordered items`, and `payments` collections as individual, independent await queries.
+* **Impact:** If a network drop occurs mid-execution, database entries become desynchronized, leading to missing invoices or unrecorded items.
+* **Solution:** Utilize a `WriteBatch` to perform atomic database updates:
+  ```dart
+  WriteBatch batch = FirebaseFirestore.instance.batch();
+  batch.set(orderRef, orderData);
+  batch.set(itemRef, itemData);
+  batch.set(paymentRef, paymentData);
+  await batch.commit();
+  ```
+
+---
+
+## 4. Code Quality, Style & Linting Issues
+
+### Non-Standard Folder & File Naming Conventions
+* **Description:** Multiple folders and files contain white spaces instead of `snake_case` (e.g., `dope introduction`, `drawer options.dart`, `analytic service.dart`). There is also a typo in the search folder name: `custom saerch.dart`.
+* **Impact:** Violates Dart conventions, causes import anomalies in platform configurations, and leads to messy URL-encoded paths.
+* **Solution:** Rename all directories and files to use lowercase with underscores (e.g. `dope_introduction`, `drawer_options.dart`).
+
+### Boilerplate Widget Test Failure
+* **Affected File:** [widget_test.dart](file:///c:/solcafe/test/widget_test.dart)
+* **Description:** The test suite contains the default counter application widget test.
+* **Impact:** The test suite will fail on compilation, providing zero actual test coverage.
+* **Solution:** Write customized tests verifying the splash, login, and tab pages, or remove the boilerplate test.
+
+### Bloated pubspec.yaml Dependencies
+* **Description:** The following packages are declared in `pubspec.yaml` but are never imported or used:
+  - `firebase_messaging`
+  - `firebase_dynamic_links`
+  - `firebase_in_app_messaging`
+  - `video_player`
+  - `razorpay_flutter` (all payment flows are mocked instead of utilizing Razorpay)
+* **Impact:** Bloats the final application binary size and increases package update and build maintenance overhead.
+* **Solution:** Remove unused dependencies from `pubspec.yaml`.
+
+### Duplicate Logic (Violation of DRY)
+* **Description:**
+  1. `capitalizeFullName` is declared identically inside three separate files:
+     - `drawer options.dart`
+     - `my account.dart`
+     - `edit profile.dart`
+  2. `QuantitySelector` and `SizeSelector` are defined as standalone widgets but are implemented as custom inline code inside `Viewindetail`.
+* **Solution:** Move `capitalizeFullName` into a central `string_utils.dart` file and reuse the shared widget selectors.
+
+---
+
+## 5. UI/UX Analysis
+
+```mermaid
+graph TD
+    A[View In Detail Screen] -->|Click Add to Cart| B(AddToCartPage)
+    B -->|Click Add to Cart Again| C{Add to Cart Action}
+    C -->|Wait 3 Seconds| D[CartsPage]
+    A -->|Direct Action?| E[High Friction & Delays]
+```
+
+* **Excessive Splash Screen Delay:** A **7-second delay** on the splash screen is far too long for a coffee shop app. This should be shortened to 2-3 seconds.
+* **Splash Timer Leak:** The `Timer` is not cancelled in `dispose()`, meaning if the user closes/minimizes the app before navigation triggers, it will invoke `Navigator` on an unmounted/deceased context.
+* **High Contrast and Accessibility:** In `MyAccount`, the action button has a hardcoded color `Colors.amber.shade300` which contains white text. This lacks high-contrast visibility and violates WCAG contrast guidelines.
+* **Profile Image Memory Leak:** Logging out does not clear the `profile_image_path` in `SharedPreferences`. If User A logs out and User B logs in, User B will see User A's profile picture until they change it.
+
+---
+
+## 6. Prioritized Release Roadmap
+
+To prepare the application for a stable production release, the following roadmap is recommended:
+
+```mermaid
+gantt
+    title SolCafe Release Roadmap
+    dateFormat  YYYY-MM-DD
+    section Phase 1: Critical Fixes
+    Fix Cart streams & types             :active, p1, 2026-07-25, 2d
+    Remove plaintext card printing       :active, p2, 2026-07-25, 1d
+    Resolve auth wrapper stack issues    :active, p3, 2026-07-27, 2d
+    section Phase 2: High Priority UI/UX
+    Fix search image crash & clicks     :after p3, p4, 3d
+    Implement profile update name keys   :after p4, p5, 2d
+    Add UPI/Netbanking order routing     :after p5, p6, 2d
+    section Phase 3: Cleanup & Refactoring
+    Rename directories & files           :after p6, p7, 2d
+    Remove unused dependencies & wrappers :after p7, p8, 2d
+    Replace boilerplate test suites       :after p8, p9, 3d
+```
+
+---
+*Report compiled on 2026-07-24 by Antigravity.*

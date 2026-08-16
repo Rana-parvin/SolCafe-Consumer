@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:solcafe/user%20authentication/login.dart';
+import 'package:solcafe/features/auth/presentation/screens/login_screen.dart';
 import 'package:solcafe/dope%20introduction/dope1.dart';
 import 'package:solcafe/dope%20introduction/dope2.dart';
 import 'package:solcafe/dope%20introduction/dope3.dart';
@@ -65,10 +65,10 @@ class _DopemainState extends State<Dopemain> {
                           padding: const EdgeInsets.only(left: 50),
                           child: GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context)=>Login()),
-                                );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context)=>const LoginScreen()),
+                                  );
                               },
                               child: Text("Get Started",style: TextStyle(
                                 fontWeight: FontWeight.bold,fontSize: 20,

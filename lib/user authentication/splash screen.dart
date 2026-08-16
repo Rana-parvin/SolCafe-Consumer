@@ -101,7 +101,7 @@ class _UserSplashState extends State<UserSplash>
               child: FadeTransition(
                 opacity: fadeAnimation,
                 child: Text(
-                  "Coffee cafe",
+                  "SolCafe",
                   style: TextStyle(
                     fontSize: 25,
                     color: const Color.fromARGB(255, 24, 10, 10),

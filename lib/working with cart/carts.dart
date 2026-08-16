@@ -34,12 +34,13 @@ class CartsPage extends StatelessWidget {
       );
     }
 
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
     final cartStream = FirebaseFirestore.instance
         .collection('cart items')
-        .where(
-            'userId',
-            isEqualTo:
-                FirebaseFirestore.instance.collection('users').doc(user.uid))
+        .where(Filter.or(
+          Filter('userId', isEqualTo: user.uid),
+          Filter('userId', isEqualTo: userRef),
+        ))
         .snapshots();
 
     return Scaffold(
@@ -63,51 +64,57 @@ class CartsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final doc = cartDocs[index];
               final data = doc.data() as Map<String, dynamic>;
-              final itemRef = data['itemId'] as DocumentReference;
+              
+              // Safe extraction of item document reference or ID
+              DocumentReference? itemRef;
+              if (data['itemId'] is DocumentReference) {
+                itemRef = data['itemId'] as DocumentReference;
+              } else if (data['itemId'] is String && (data['itemId'] as String).isNotEmpty) {
+                itemRef = FirebaseFirestore.instance.collection('items').doc(data['itemId'] as String);
+              }
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: itemRef.get(),
+              final String itemIdStr = itemRef?.id ?? doc.id;
+              final Future<DocumentSnapshot<Map<String, dynamic>>?> itemFuture = itemRef != null
+                  ? itemRef.get().then((d) => d as DocumentSnapshot<Map<String, dynamic>>)
+                  : Future.value(null);
+
+              return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
+                future: itemFuture,
                 builder: (context, itemSnapshot) {
-                  if (!itemSnapshot.hasData) {
-                    return const Card(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: Text('Loading item...'),
-                        subtitle: Text('Please wait'),
-                      ),
-                    );
-                  }
+                  final itemData = itemSnapshot.data?.data() ?? data;
+                  final String itemName = itemData['name'] ?? itemData['title'] ?? data['name'] ?? 'Item';
+                  final String itemImage = itemData['image'] ?? data['image'] ?? 'assets/images/coffee.jpg';
+                  final double itemPrice = double.tryParse(itemData['price']?.toString() ?? data['price']?.toString() ?? '0') ?? 0.0;
 
-                  final itemData =
-                      itemSnapshot.data!.data() as Map<String, dynamic>;
 
                   final cartItem = CartItem(
                     id: doc.id,
-                    name: itemData['name'] ?? 'Item',
-                    price: double.tryParse(itemData['price'].toString()) ??
-                        0.0, 
-                    image: itemData['image'] ?? '',
-                    quantity: data['quantity'] ?? 1,
-                    size: data['size'] ?? '',
+                    name: itemName,
+                    price: itemPrice, 
+                    image: itemImage,
+                    quantity: data['quantity'] is int ? data['quantity'] as int : int.tryParse(data['quantity']?.toString() ?? '1') ?? 1,
+                    size: data['size']?.toString() ?? 'M',
                   );
 
                   return InkWell(
                     borderRadius: BorderRadius.circular(12),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CartItemDetailsPage(
-          image: cartItem.image,
-          name: cartItem.name,
-          description: itemData['description'] ?? '',
-          price: cartItem.price,
-          size: cartItem.size,
-          quantity: cartItem.quantity, itemId: itemRef.id, itemData: itemData,
-        ),
-      ),
-    );
-  },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CartItemDetailsPage(
+                            image: cartItem.image,
+                            name: cartItem.name,
+                            description: itemData['description'] ?? '',
+                            price: cartItem.price,
+                            size: cartItem.size,
+                            quantity: cartItem.quantity,
+                            itemId: itemIdStr,
+                            itemData: itemData,
+                          ),
+                        ),
+                      );
+                    },
                     child: Card(
                       elevation: 3,
                       shape: RoundedRectangleBorder(

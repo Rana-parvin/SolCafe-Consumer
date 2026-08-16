@@ -1,9 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solcafe/theme%20management/theme_provider.dart';
+import 'package:solcafe/core/theme/theme_provider.dart';
 import 'package:solcafe/firebase_options.dart';
-import 'package:solcafe/user%20authentication/splash%20screen.dart';
+import 'package:solcafe/features/auth/presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,8 +23,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: theme,
-    
       home: const UserSplash(), 
     );
   }
 }
+
