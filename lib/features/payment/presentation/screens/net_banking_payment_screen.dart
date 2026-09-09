@@ -1,9 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
+import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
+import 'package:solcafe/features/order/domain/entities/order_entity.dart';
+import 'package:solcafe/features/order/presentation/providers/order_provider.dart';
 
-class NetBankingPaymentScreen extends StatefulWidget {
+class NetBankingPaymentScreen extends ConsumerStatefulWidget {
   final String itemid;
   final int quantity;
   final String size;
@@ -22,10 +25,10 @@ class NetBankingPaymentScreen extends StatefulWidget {
   });
 
   @override
-  State<NetBankingPaymentScreen> createState() => _NetBankingPaymentScreenState();
+  ConsumerState<NetBankingPaymentScreen> createState() => _NetBankingPaymentScreenState();
 }
 
-class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
+class _NetBankingPaymentScreenState extends ConsumerState<NetBankingPaymentScreen> {
   String? selectedBank;
 
   final List<Map<String, dynamic>> banks = [
@@ -37,13 +40,15 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colors = context.solcafeColors;
+    final paymentState = ref.watch(orderPaymentNotifierProvider);
+    final isLoading = paymentState.isLoading;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           "Net Banking",
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.readexPro(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
@@ -59,13 +64,13 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
                   borderRadius: BorderRadius.circular(20),
                   gradient: LinearGradient(
                     colors: [
-                      theme.primaryColor,
-                      theme.primaryColor.withValues(alpha: 0.8),
+                      colors.accentGold,
+                      colors.accentGold.withValues(alpha: 0.8),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: colors.cardBorder,
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -76,17 +81,17 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
                   children: [
                     Text(
                       "Amount Payable",
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.openSans(
                         fontSize: 16,
-                        color: Colors.white,
+                        color: colors.textOnAccent,
                       ),
                     ),
                     Text(
-                      "₹${widget.totalprice}",
-                      style: GoogleFonts.poppins(
+                      "\$${widget.totalprice}",
+                      style: GoogleFonts.readexPro(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: colors.textOnAccent,
                       ),
                     ),
                   ],
@@ -95,9 +100,10 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
               const SizedBox(height: 24),
               Text(
                 "Popular Banks",
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.readexPro(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -109,13 +115,15 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
                     final isSelected = selectedBank == bank["name"];
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 10),
                       child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            selectedBank = bank["name"];
-                          });
-                        },
+                        onTap: isLoading
+                            ? null
+                            : () {
+                                setState(() {
+                                  selectedBank = bank["name"];
+                                });
+                              },
                         borderRadius: BorderRadius.circular(16),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -123,39 +131,32 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected
-                                  ? theme.primaryColor
-                                  : Colors.grey.shade300,
+                              color: isSelected ? colors.accentGold : colors.cardBorder,
                               width: isSelected ? 2 : 1,
                             ),
-                            color: isSelected
-                                ? theme.primaryColor.withValues(alpha: 0.05)
-                                : Colors.white,
+                            color: isSelected ? colors.accentGoldSubtle : colors.cardBackground,
                           ),
                           child: Row(
                             children: [
                               Icon(
                                 bank["icon"],
-                                color: isSelected
-                                    ? theme.primaryColor
-                                    : Colors.grey,
+                                color: isSelected ? colors.accentGold : colors.textSecondary,
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
                                   bank["name"],
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.openSans(
                                     fontSize: 16,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
+                                    color: colors.textPrimary,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                   ),
                                 ),
                               ),
                               if (isSelected)
                                 Icon(
                                   Icons.check_circle,
-                                  color: theme.primaryColor,
+                                  color: colors.accentGold,
                                 ),
                             ],
                           ),
@@ -167,25 +168,20 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
               ),
               SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 50,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: selectedBank == null
+                  onPressed: (selectedBank == null || isLoading)
                       ? null
                       : () async {
-                          await _processOrder(context);
+                          await _processOrder();
                         },
-                  child: Text(
-                    "Pay via $selectedBank",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Text("Pay via $selectedBank"),
                 ),
               ),
             ],
@@ -195,66 +191,42 @@ class _NetBankingPaymentScreenState extends State<NetBankingPaymentScreen> {
     );
   }
 
-  Future<void> _processOrder(BuildContext context) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-      final uid = user.uid;
+  Future<void> _processOrder() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      final firestore = FirebaseFirestore.instance;
-      final batch = firestore.batch();
+    final currentUser = ref.read(currentUserProvider);
+    final uid = currentUser?.uid ?? '';
+    if (uid.isEmpty) return;
 
-      DocumentReference orderRef = firestore.collection("making_orders").doc();
-      DocumentReference itemRef = firestore.collection("ordered items").doc();
-      DocumentReference paymentRef = firestore.collection("payments").doc();
+    final order = OrderEntity(
+      id: '',
+      userId: uid,
+      itemId: widget.itemid,
+      itemName: widget.itemname,
+      image: widget.image,
+      size: widget.size,
+      quantity: widget.quantity,
+      totalPrice: double.tryParse(widget.totalprice) ?? 0.0,
+      status: 'pending',
+      paymentMethod: 'net banking',
+      orderDate: DateTime.now(),
+    );
 
-      batch.set(orderRef, {
-        "userid": uid,
-        "item id": widget.itemid,
-        "size": widget.size,
-        "total price": widget.totalprice,
-        "status": "pending",
-        "date": DateTime.now(),
-      });
+    final success = await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
 
-      batch.set(itemRef, {
-        "order id": orderRef.id,
-        "item id": widget.itemid,
-        "size": widget.size,
-        "quantity": widget.quantity,
-        "totalprice": widget.totalprice,
-        "ordered date": DateTime.now(),
-        "userid": uid,
-        "itemname": widget.itemname,
-        "image": widget.image,
-        "payment method": "net banking"
-      });
-
-      batch.set(paymentRef, {
-        "order id": orderRef.id,
-        "item id": widget.itemid,
-        "size": widget.size,
-        "quantity": widget.quantity,
-        "total amount": widget.totalprice,
-        "ordered date": DateTime.now(),
-        "userid": uid,
-      });
-
-      await batch.commit();
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+    if (!mounted) return;
+    if (success) {
+      messenger.showSnackBar(
         const SnackBar(content: Text("Order processed successfully")),
       );
-      Navigator.popUntil(context, (route) => route.isFirst);
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error processing order: $e")),
+      navigator.popUntil((route) => route.isFirst);
+    } else {
+      messenger.showSnackBar(
+        const SnackBar(content: Text("Failed to process order")),
       );
     }
   }
 }
 
-// Backward compatibility alias
 typedef Netbanking = NetBankingPaymentScreen;

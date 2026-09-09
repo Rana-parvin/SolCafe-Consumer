@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:solcafe/core/presentation/providers/size_logic_provider.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/cart/presentation/screens/add_to_cart_screen.dart';
 import 'package:solcafe/features/order/presentation/screens/confirm_order_screen.dart';
 
@@ -61,29 +62,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   Widget build(BuildContext context) {
     final category = widget.itemdata['category']?.toLowerCase() ?? "";
     final List<String> sizeoptions = Sizelogic.sizesfor(category);
+    final colors = context.solcafeColors;
 
     return Scaffold(
       appBar: AppBar(
         actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: Icon(
-                  isfavorite ? Icons.favorite : Icons.favorite_border,
-                  color: const Color.fromARGB(255, 255, 231, 222),
-                ),
-                onPressed: () async {
-                  setState(() => isfavorite = !isfavorite);
+          IconButton(
+            icon: Icon(
+              isfavorite ? Icons.favorite : Icons.favorite_border,
+              color: isfavorite ? Colors.redAccent : colors.textPrimary,
+            ),
+            onPressed: () async {
+              setState(() => isfavorite = !isfavorite);
 
-                  if (isfavorite) {
-                    setState(() => showAnim = true);
-                    await favController.forward(from: 0);
-                    setState(() => showAnim = false);
-                  }
-                },
-              ),
-            ],
+              if (isfavorite) {
+                setState(() => showAnim = true);
+                await favController.forward(from: 0);
+                setState(() => showAnim = false);
+              }
+            },
           ),
         ],
       ),
@@ -94,8 +91,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               child: Lottie.asset(
                 "assets/anims/Hearts feedback.json",
                 controller: favController,
-                width: 500,
-                height: 500,
+                width: 300,
+                height: 300,
                 onLoaded: (comp) {
                   favController.duration = comp.duration;
                 },
@@ -103,36 +100,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             ),
           SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(15.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ItemeImageWidget(imagepath: widget.itemdata["image"] ?? ''),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Card(
-                    color: const Color.fromARGB(255, 37, 24, 6),
                     child: ListTile(
                       title: Text(
                         widget.itemdata['name'] ?? widget.itemdata['title'] ?? 'Item',
-                        style: GoogleFonts.adventPro(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFF5E1C0),
+                        style: GoogleFonts.readexPro(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
                         ),
                       ),
                       subtitle: widget.itemdata['price'] != null
                           ? Text(
-                              "\$ ${widget.itemdata['price']}",
+                              "\$${widget.itemdata['price']}",
                               style: GoogleFonts.openSans(
                                 fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFFDAA520),
+                                fontWeight: FontWeight.bold,
+                                color: colors.accentGold,
                               ),
                             )
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   if (widget.itemdata['category'] == 'others')
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -141,12 +137,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         children: [
                           Text(
                             "Select Type",
-                            style: GoogleFonts.openSans(
-                              fontSize: 18,
+                            style: GoogleFonts.readexPro(
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: colors.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Wrap(
                             spacing: 10,
                             children: [
@@ -158,6 +155,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                 ChoiceChip(
                                   label: Text(t),
                                   selected: selectedtype == t,
+                                  selectedColor: colors.accentGold,
+                                  labelStyle: TextStyle(
+                                    color: selectedtype == t ? colors.textOnAccent : colors.textPrimary,
+                                  ),
                                   onSelected: (_) {
                                     setState(() => selectedtype = t);
                                   },
@@ -167,43 +168,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         ],
                       ),
                     ),
-                  const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     "Description",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                    style: GoogleFonts.readexPro(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 600),
-                      child: Text(
-                        widget.itemdata["description"] ?? '',
-                        style: GoogleFonts.openSans(fontSize: 14, height: 1.5),
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.itemdata["description"] ?? '',
+                    style: GoogleFonts.openSans(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: colors.textSecondary,
                     ),
                   ),
+                  const SizedBox(height: 16),
                   if (sizeoptions.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Choose Size",
-                            style: GoogleFonts.openSans(
-                              fontSize: 18,
+                            style: GoogleFonts.readexPro(
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: colors.textPrimary,
                             ),
                           ),
                           ToggleButtons(
                             borderRadius: BorderRadius.circular(12),
-                            selectedColor: Colors.white,
-                            fillColor: const Color(0xFF6F4E37),
-                            borderColor: Colors.brown,
-                            selectedBorderColor: const Color(0xFFF5E1C0),
+                            selectedColor: colors.textOnAccent,
+                            color: colors.textPrimary,
+                            fillColor: colors.accentGold,
+                            borderColor: colors.borderSubtle,
+                            selectedBorderColor: colors.accentGold,
                             onPressed: (index) {
                               setState(() => selectedsize = sizeoptions[index]);
                             },
@@ -213,14 +216,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             children: sizeoptions
                                 .map(
                                   (size) => Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 15,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14),
                                     child: Text(
                                       size,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 )
@@ -230,68 +229,69 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       ),
                     ),
                   const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Quantity",
-                          style: GoogleFonts.openSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 37, 24, 6),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  decrementq();
-                                },
-                                icon: const Icon(
-                                  Icons.remove,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                quantity.toString(),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  incrementq();
-                                },
-                                icon: const Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                        width: 150,
-                        height: 50,
+                      Text(
+                        "Quantity",
+                        style: GoogleFonts.readexPro(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colors.surfaceSecondary,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: colors.borderSubtle),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: decrementq,
+                              icon: Icon(Icons.remove, color: colors.textPrimary, size: 18),
+                            ),
+                            Text(
+                              quantity.toString(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: incrementq,
+                              icon: Icon(Icons.add, color: colors.textPrimary, size: 18),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddToCartScreen(
+                                  itemData: widget.itemdata,
+                                  size: selectedsize,
+                                  quantity: quantity,
+                                  itemId: widget.itemid,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text("Add to Cart"),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.push(
@@ -308,33 +308,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                               ),
                             );
                           },
-                          child: const Text(
-                            "Order Now",
-                            style: TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 150,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddToCartPage(
-                                  itemData: widget.itemdata,
-                                  size: selectedsize,
-                                  quantity: quantity,
-                                  itemId: widget.itemid,
-                                ),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Add to cart",
-                            style: TextStyle(fontWeight: FontWeight.w900),
-                          ),
+                          child: const Text("Order Now"),
                         ),
                       ),
                     ],
@@ -356,18 +330,21 @@ class ItemeImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
     return Center(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: imagepath.isNotEmpty
-            ? (imagepath.startsWith('http://') || imagepath.startsWith('https://')
-                ? Image.network(imagepath, height: 325, width: double.infinity, fit: BoxFit.cover)
-                : Image.asset(imagepath, height: 325, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.coffee, size: 100)))
-            : const Icon(Icons.coffee, size: 100),
+        child: Container(
+          color: colors.surfaceSecondary,
+          child: imagepath.isNotEmpty
+              ? (imagepath.startsWith('http://') || imagepath.startsWith('https://')
+                  ? Image.network(imagepath, height: 280, width: double.infinity, fit: BoxFit.cover)
+                  : Image.asset(imagepath, height: 280, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 100, color: colors.textMuted)))
+              : Icon(Icons.coffee, size: 100, color: colors.textMuted),
+        ),
       ),
     );
   }
 }
 
-// Backward compatibility alias
 typedef Viewindetail = ProductDetailScreen;

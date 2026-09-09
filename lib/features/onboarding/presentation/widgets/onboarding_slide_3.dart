@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OnboardingSlide3 extends StatelessWidget {
   const OnboardingSlide3({super.key});
@@ -17,40 +18,54 @@ class OnboardingSlide3 extends StatelessWidget {
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.all(60.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: 15, bottom: 0, left: 5),
-                child: Text(
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.65),
+                Colors.black.withValues(alpha: 0.2),
+                Colors.black.withValues(alpha: 0.7),
+              ],
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   "Designed For You",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Color.fromARGB(255, 241, 172, 140),
-                    fontSize: 30,
+                  style: GoogleFonts.readexPro(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 32,
+                    height: 1.2,
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(right: 10, left: 10),
-                child: Divider(
-                  thickness: 1.3,
-                  color: Color.fromARGB(255, 231, 204, 204),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 3, right: 10, left: 13),
-                child: Text(
-                  "Your Preferences,Your Style.Let's Make It Yours",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 70, 40, 26),
-                    fontSize: 18,
+                const SizedBox(height: 12),
+                Container(
+                  height: 3,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5B25D),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(
+                  "Your preferences, your style. Let's make it yours.",
+                  style: GoogleFonts.openSans(
+                    color: const Color(0xFFF5E1C0),
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -58,5 +73,4 @@ class OnboardingSlide3 extends StatelessWidget {
   }
 }
 
-// Backward compatibility alias
 typedef Dope3 = OnboardingSlide3;

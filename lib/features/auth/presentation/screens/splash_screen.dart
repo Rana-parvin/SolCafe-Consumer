@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/screens/auth_wrapper.dart';
 
 class UserSplash extends StatefulWidget {
@@ -38,7 +39,6 @@ class _UserSplashState extends State<UserSplash>
 
     _controller.forward();
 
-    // Reduced delay from 7s to 2.5s for improved UX, and safely store timer reference
     _timer = Timer(const Duration(milliseconds: 2500), () {
       if (mounted) {
         Navigator.pushReplacement(
@@ -60,23 +60,24 @@ class _UserSplashState extends State<UserSplash>
 
   @override
   void dispose() {
-    _timer?.cancel(); // Fix memory leak and BuildContext crash
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 47, 24, 16),
-              Color.fromARGB(255, 153, 112, 97),
-              Color.fromARGB(255, 183, 141, 126),
-              Color.fromARGB(255, 181, 155, 147),
+              colors.surfaceSecondary,
+              colors.surfacePrimary,
+              colors.cardBackground,
             ],
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
@@ -98,11 +99,11 @@ class _UserSplashState extends State<UserSplash>
               position: slideAnimation,
               child: FadeTransition(
                 opacity: fadeAnimation,
-                child: const Text(
+                child: Text(
                   "SolCafe",
                   style: TextStyle(
-                    fontSize: 25,
-                    color: Color.fromARGB(255, 24, 10, 10),
+                    fontSize: 28,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 4,
                   ),
@@ -112,12 +113,13 @@ class _UserSplashState extends State<UserSplash>
             const SizedBox(height: 10),
             FadeTransition(
               opacity: fadeAnimation,
-              child: const Text(
-                "☕ Brewed with Love ",
+              child: Text(
+                "☕ Brewed with Love",
                 style: TextStyle(
                   fontSize: 16,
                   letterSpacing: 2,
-                  color: Color.fromARGB(179, 44, 19, 19),
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/core/theme/theme_provider.dart';
-import 'package:solcafe/core/theme/app_theme.dart';
 import 'package:solcafe/features/auth/presentation/screens/edit_profile_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -13,34 +13,24 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool get _isLightTheme => ref.read(themeProvider) == creamTheme;
-
-  void _handleToggleTheme() async {
-    ref.read(themeProvider.notifier).setTheme(
-      _isLightTheme ? brownTheme : creamTheme,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = ref.watch(themeProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
+    final isLight = themeMode.isLight(context);
+    final colors = context.solcafeColors;
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         title: Text(
           "Settings",
           style: GoogleFonts.readexPro(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: SafeArea(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          color: theme.scaffoldBackgroundColor,
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             children: [
@@ -53,56 +43,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   return Transform.scale(
                     scale: scale,
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
-                      height: 160,
-                      width: 160,
+                      height: 140,
+                      width: 140,
                       decoration: BoxDecoration(
-                        gradient: _isLightTheme
-                            ? const LinearGradient(
-                                colors: [Colors.orangeAccent, Colors.brown],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : const LinearGradient(
-                                colors: [Colors.indigo, Colors.black87],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                        gradient: LinearGradient(
+                          colors: isLight
+                              ? [const Color(0xFFF5E1C0), const Color(0xFFC68B27)]
+                              : [const Color(0xFF3A2518), const Color(0xFF1C120C)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: _isLightTheme
-                                ? Colors.brown.shade200
-                                : Colors.black54,
+                            color: colors.cardBorder,
                             offset: const Offset(4, 4),
-                            blurRadius: 10,
-                          ),
-                          BoxShadow(
-                            color: _isLightTheme ? Colors.white : Colors.grey.shade900,
-                            offset: const Offset(-4, -4),
                             blurRadius: 10,
                           ),
                         ],
                       ),
                       child: Center(
                         child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 600),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: ScaleTransition(scale: animation, child: child),
-                            );
-                          },
+                          duration: const Duration(milliseconds: 400),
                           child: Icon(
-                            _isLightTheme
-                                ? Icons.sunny
-                                : Icons.nights_stay_sharp,
-                            key: ValueKey(_isLightTheme),
-                            size: 70,
-                            color: _isLightTheme
-                                ? Colors.yellowAccent
-                                : Colors.lightBlueAccent,
+                            isLight ? Icons.wb_sunny_rounded : Icons.nights_stay_rounded,
+                            key: ValueKey(isLight),
+                            size: 60,
+                            color: isLight ? const Color(0xFFC68B27) : const Color(0xFFE5B25D),
                           ),
                         ),
                       ),
@@ -112,21 +81,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 30),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.05),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
+                child: ListView(
+                  children: [
+                    _buildSettingsCard(
+                      context,
+                      icon: Icons.edit_outlined,
+                      title: "Edit Profile",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                        );
+                      },
+                    ),
+                    _buildSettingsCard(
+                      context,
+                      icon: isLight ? Icons.wb_sunny_outlined : Icons.nights_stay_outlined,
+                      iconColor: colors.accentGold,
+                      title: "Theme Mode",
+                      trailing: SegmentedButton<SolCafeThemeMode>(
+                        segments: const [
+                          ButtonSegment(value: SolCafeThemeMode.cream, label: Text('Light')),
+                          ButtonSegment(value: SolCafeThemeMode.brown, label: Text('Dark')),
+                        ],
+                        selected: {themeMode == SolCafeThemeMode.system ? (isLight ? SolCafeThemeMode.cream : SolCafeThemeMode.brown) : themeMode},
+                        onSelectionChanged: (newSelection) {
+                          ref.read(themeNotifierProvider.notifier).setThemeMode(newSelection.first);
+                        },
                       ),
-                    );
-                  },
-                  child: _buildSettingsList(),
+                    ),
+                    _buildSettingsCard(
+                      context,
+                      icon: Icons.notifications_none,
+                      title: "Notifications",
+                    ),
+                    _buildSettingsCard(
+                      context,
+                      icon: Icons.language,
+                      title: "Language",
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -136,59 +130,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingsList() {
-    return ListView(
-      key: ValueKey(_isLightTheme),
-      children: [
-        _buildSettingsCard(
-          icon: Icons.edit_outlined,
-          title: "Edit Profile",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-            );
-          },
-        ),
-        _buildSettingsCard(
-          icon: _isLightTheme ? Icons.sunny : Icons.nights_stay_sharp,
-          iconColor: _isLightTheme ? Colors.amber[800] : Colors.lightBlueAccent,
-          title: "Toggle Theme",
-          trailing: Switch.adaptive(
-            value: _isLightTheme,
-            onChanged: (_) => _handleToggleTheme(),
-          ),
-        ),
-        _buildSettingsCard(icon: Icons.notifications_none, title: "Notifications"),
-        _buildSettingsCard(icon: Icons.language, title: "Language"),
-      ],
-    );
-  }
-
-  Widget _buildSettingsCard({
+  Widget _buildSettingsCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     Widget? trailing,
     VoidCallback? onTap,
     Color? iconColor,
   }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Icon(icon, color: iconColor ?? Theme.of(context).iconTheme.color),
-        title: Text(
-          title,
-          style: GoogleFonts.readexPro(fontSize: 16, fontWeight: FontWeight.w500),
+    final colors = context.solcafeColors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Card(
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          leading: Icon(icon, color: iconColor ?? colors.textPrimary),
+          title: Text(
+            title,
+            style: GoogleFonts.readexPro(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
+          ),
+          trailing: trailing,
         ),
-        trailing: trailing,
       ),
     );
   }
 }
 
-// Backward compatibility alias
 typedef Settingspage = SettingsScreen;

@@ -1,41 +1,33 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solcafe/features/menu/domain/entities/menu_item_entity.dart';
+import 'package:solcafe/features/menu/presentation/providers/menu_provider.dart';
 
-final coffeeItemsProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
-  return FirebaseFirestore.instance
-      .collection('menu')
-      .where('category', isEqualTo: 'coffee')
-      .snapshots();
+final coffeeItemsProvider = StreamProvider.autoDispose<List<MenuItemEntity>>((ref) {
+  return ref.watch(getMenuItemsUseCaseProvider).call(category: 'coffee');
 });
 
-final cakeItemsProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
-  return FirebaseFirestore.instance
-      .collection('menu')
-      .where('category', isEqualTo: 'cake')
-      .snapshots();
+final cakeItemsProvider = StreamProvider.autoDispose<List<MenuItemEntity>>((ref) {
+  return ref.watch(getMenuItemsUseCaseProvider).call(category: 'cake');
 });
 
-final OtheritemsProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
-  return FirebaseFirestore.instance
-      .collection('menu')
-      .where('category', isEqualTo: 'other items')
-      .snapshots();
+final otherItemsProvider = StreamProvider.autoDispose<List<MenuItemEntity>>((ref) {
+  return ref.watch(getMenuItemsUseCaseProvider).call(category: 'other items');
 });
 
-final noncoffeeProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
-  return FirebaseFirestore.instance
-      .collection('menu')
-      .where('category', isEqualTo: 'non coffee')
-      .snapshots();
+// ignore: non_constant_identifier_names
+final OtheritemsProvider = otherItemsProvider;
+
+final noncoffeeProvider = StreamProvider.autoDispose<List<MenuItemEntity>>((ref) {
+  return ref.watch(getMenuItemsUseCaseProvider).call(category: 'non coffee');
 });
 
-final PastryitemsProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
-  return FirebaseFirestore.instance
-      .collection('menu')
-      .where('category', isEqualTo: 'pastry')
-      .snapshots();
+final pastryItemsProvider = StreamProvider.autoDispose<List<MenuItemEntity>>((ref) {
+  return ref.watch(getMenuItemsUseCaseProvider).call(category: 'pastry');
 });
 
-final allItemsProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
-  return FirebaseFirestore.instance.collection('menu').snapshots();
+// ignore: non_constant_identifier_names
+final PastryitemsProvider = pastryItemsProvider;
+
+final allItemsProvider = StreamProvider.autoDispose<List<MenuItemEntity>>((ref) {
+  return ref.watch(getMenuItemsUseCaseProvider).call();
 });

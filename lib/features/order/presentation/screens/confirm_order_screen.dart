@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/core/utils/price_parser.dart';
 import 'package:solcafe/features/payment/presentation/screens/payment_methods_screen.dart';
 
@@ -36,123 +37,126 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: const Text("Confirm Order")),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: widget.image.isNotEmpty
-                      ? (widget.image.startsWith('http')
-                          ? Image.network(widget.image, height: 329, width: double.infinity, fit: BoxFit.cover)
-                          : Image.asset(widget.image, height: 329, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.coffee, size: 100)))
-                      : const Icon(Icons.coffee, size: 100),
+                  child: Container(
+                    color: colors.surfaceSecondary,
+                    child: widget.image.isNotEmpty
+                        ? (widget.image.startsWith('http')
+                            ? Image.network(widget.image, height: 280, width: double.infinity, fit: BoxFit.cover)
+                            : Image.asset(widget.image, height: 280, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 100, color: colors.textMuted)))
+                        : Icon(Icons.coffee, size: 100, color: colors.textMuted),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
               Card(
-                color: const Color.fromARGB(255, 37, 24, 6),
                 child: ListTile(
                   title: Text(
                     widget.name,
-                    style: GoogleFonts.adventPro(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFF5E1C0),
+                    style: GoogleFonts.readexPro(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textPrimary,
                     ),
                   ),
                   subtitle: Text(
-                    "Total: \$ $totalprice",
-                    style: GoogleFonts.openSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFDAA520),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Description",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Text(
-                    widget.itemdata["description"] ?? '',
-                    style: GoogleFonts.openSans(
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Selected Size",
-                      style: GoogleFonts.openSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(widget.size),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Text(
-                    "Quantity",
+                    "Total: \$${totalprice.toStringAsFixed(2)}",
                     style: GoogleFonts.openSans(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: colors.accentGold,
                     ),
                   ),
-                  const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 37, 24, 6),
-                      borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (widget.itemdata["description"] != null && widget.itemdata["description"].toString().isNotEmpty) ...[
+                Text(
+                  "Description",
+                  style: GoogleFonts.readexPro(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.itemdata["description"],
+                  style: GoogleFonts.openSans(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Selected Size",
+                    style: GoogleFonts.readexPro(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.quantity.toString(),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
+                  ),
+                  Text(
+                    widget.size,
+                    style: GoogleFonts.openSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
               ),
-              Container(
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Quantity",
+                    style: GoogleFonts.readexPro(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.accentGoldSubtle,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: colors.accentGold),
+                    ),
+                    child: Text(
+                      widget.quantity.toString(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: colors.accentGold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
                 width: double.infinity,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -169,7 +173,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                       ),
                     );
                   },
-                  child: const Text('Confirm Order'),
+                  child: const Text('Proceed to Payment'),
                 ),
               ),
             ],
@@ -180,5 +184,4 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
   }
 }
 
-// Backward compatibility alias
 typedef Confirmorder = ConfirmOrderScreen;

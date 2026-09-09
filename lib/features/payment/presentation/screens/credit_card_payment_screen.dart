@@ -1,9 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
+import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
+import 'package:solcafe/features/order/domain/entities/order_entity.dart';
+import 'package:solcafe/features/order/presentation/providers/order_provider.dart';
 
-class CreditCardPaymentScreen extends StatefulWidget {
+class CreditCardPaymentScreen extends ConsumerStatefulWidget {
   final String itemid;
   final String totalprice;
   final int quantity;
@@ -22,10 +25,10 @@ class CreditCardPaymentScreen extends StatefulWidget {
   });
 
   @override
-  State<CreditCardPaymentScreen> createState() => _CreditCardPaymentScreenState();
+  ConsumerState<CreditCardPaymentScreen> createState() => _CreditCardPaymentScreenState();
 }
 
-class _CreditCardPaymentScreenState extends State<CreditCardPaymentScreen>
+class _CreditCardPaymentScreenState extends ConsumerState<CreditCardPaymentScreen>
     with SingleTickerProviderStateMixin {
   final formkey = GlobalKey<FormState>();
 
@@ -51,7 +54,7 @@ class _CreditCardPaymentScreenState extends State<CreditCardPaymentScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 600),
     );
     _animation = Tween<double>(
       begin: 0,
@@ -104,57 +107,44 @@ class _CreditCardPaymentScreenState extends State<CreditCardPaymentScreen>
     required String image,
     required String itemname,
   }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
-      String uid = FirebaseAuth.instance.currentUser!.uid;
-      final firestore = FirebaseFirestore.instance;
-      final batch = firestore.batch();
+      final currentUser = ref.read(currentUserProvider);
+      final uid = currentUser?.uid ?? '';
+      if (uid.isEmpty) return;
 
-      DocumentReference orderRef = firestore.collection("making_orders").doc();
-      DocumentReference itemRef = firestore.collection("ordered items").doc();
-      DocumentReference paymentRef = firestore.collection("payments").doc();
+      final order = OrderEntity(
+        id: '',
+        userId: uid,
+        itemId: itemId,
+        itemName: itemname,
+        image: image,
+        size: size,
+        quantity: quantity,
+        totalPrice: double.tryParse(totalPrice) ?? 0.0,
+        status: 'pending',
+        paymentMethod: 'credit card',
+        orderDate: DateTime.now(),
+      );
 
-      batch.set(orderRef, {
-        "userid": uid,
-        "item id": itemId,
-        "size": size,
-        "total price": totalPrice,
-        "status": "pending",
-        "date": DateTime.now(),
-      });
+      final success = await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
 
-      batch.set(itemRef, {
-        "order id": orderRef.id,
-        "item id": itemId,
-        "size": size,
-        "quantity": quantity,
-        "totalprice": totalPrice,
-        "ordered date": DateTime.now(),
-        "userid": uid,
-        "itemname": itemname,
-        "image": image,
-        "payment method": "credit card"
-      });
-
-      batch.set(paymentRef, {
-        "order id": orderRef.id,
-        "item id": itemId,
-        "size": size,
-        "quantity": quantity,
-        "total amount": totalPrice,
-        "ordered date": DateTime.now(),
-        "userid": uid,
-      });
-
-      await batch.commit();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      if (success) {
+        messenger.showSnackBar(
           const SnackBar(content: Text("Payment processed successfully!")),
         );
-        Navigator.popUntil(context, (route) => route.isFirst);
+        navigator.popUntil((route) => route.isFirst);
+      } else {
+        messenger.showSnackBar(
+          const SnackBar(content: Text("Failed to process payment")),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text("Error ordering item: $e")),
         );
       }
@@ -378,6 +368,8 @@ class CustomTextFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Padding(
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextFormField(
@@ -388,35 +380,25 @@ class CustomTextFormField extends StatelessWidget {
         maxLength: maxLength,
         validator: validator,
         onChanged: onChanged,
+        style: TextStyle(color: colors.textPrimary),
         decoration: InputDecoration(
           floatingLabelBehavior: FloatingLabelBehavior.never,
           counterText: "",
           suffixText: suffixText,
           labelText: labelText,
           hintText: hintText,
-          labelStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          prefixIcon: Icon(
-            prefixIcon,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
+          labelStyle: TextStyle(color: colors.textSecondary),
+          prefixIcon: Icon(prefixIcon, color: colors.accentGold),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-            ),
+            borderSide: BorderSide(color: colors.borderSubtle),
             borderRadius: borderRadius,
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-            ),
+            borderSide: BorderSide(color: colors.borderFocused, width: 1.5),
             borderRadius: borderRadius,
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-            ),
+            borderSide: BorderSide(color: colors.borderSubtle),
             borderRadius: borderRadius,
           ),
         ),
@@ -440,10 +422,10 @@ class CreditFront extends StatelessWidget {
   static const LinearGradient forcreamtheme = LinearGradient(
     tileMode: TileMode.repeated,
     colors: [
+      Color(0xFF3E2723),
       Color(0xFF4E342E),
-      Color(0xFF4E342E),
+      Color(0xFF6F4E37),
       Color(0xFF8D6E63),
-      Color(0xFFBCAAA4),
     ],
     begin: Alignment.bottomLeft,
     end: Alignment.topRight,
@@ -452,10 +434,10 @@ class CreditFront extends StatelessWidget {
   static const LinearGradient forbrowntheme = LinearGradient(
     tileMode: TileMode.repeated,
     colors: [
-      Color(0xFFFFF8E1),
-      Color(0xFFFFF8E1),
-      Color(0xFFB09288),
-      Color(0xFF6F564D),
+      Color(0xFF261810),
+      Color(0xFF3A2518),
+      Color(0xFF4A3222),
+      Color(0xFF6F4E37),
     ],
     begin: Alignment.bottomLeft,
     end: Alignment.topRight,
@@ -474,85 +456,88 @@ class CreditFront extends StatelessWidget {
 
     return Center(
       child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(16),
-        child: Container(
-          width: 380,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            gradient: getCardGradient(context),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Credit Card",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.labelMedium?.color,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Image.asset(
-                  "assets/images/credit chip.jpg",
-                  height: 40,
-                  width: 50,
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Text(
-                    displaycardnumber,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: getCardGradient(context),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Credit Card",
                     style: TextStyle(
-                      letterSpacing: 4,
-                      fontSize: 20,
-                      color: Theme.of(context).textTheme.labelMedium?.color,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFF5E1C0),
                     ),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15),
-                      child: Text(
-                        "Valid\n Upto: $expiry",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context).textTheme.labelMedium?.color,
+                  const SizedBox(height: 14),
+                  Image.asset(
+                    "assets/images/credit chip.jpg",
+                    height: 40,
+                    width: 50,
+                  ),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Text(
+                      displaycardnumber,
+                      style: const TextStyle(
+                        letterSpacing: 4,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFF5E1C0),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Text(
+                          "Valid\n Upto: $expiry",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFFD8BEB4),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      cardholder.toUpperCase(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.labelMedium?.color,
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        cardholder.toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
+                          fontSize: 15,
+                          color: Color(0xFFF5E1C0),
+                        ),
                       ),
-                    ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: Image.asset(
-                        "assets/images/visa.png",
-                        fit: BoxFit.cover,
-                        height: 40,
-                        width: 50,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: Image.asset(
+                          "assets/images/visa.png",
+                          fit: BoxFit.cover,
+                          height: 40,
+                          width: 50,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -560,6 +545,7 @@ class CreditFront extends StatelessWidget {
     );
   }
 }
+
 
 class CreditBack extends StatelessWidget {
   final String cvv;
@@ -571,16 +557,17 @@ class CreditBack extends StatelessWidget {
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       margin: const EdgeInsets.all(16),
-      child: Container(
-        width: 380,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          gradient: const CreditFront(
-            cardnumber: '',
-            expiry: '',
-            cardholder: '',
-          ).getCardGradient(context),
-        ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            gradient: const CreditFront(
+              cardnumber: '',
+              expiry: '',
+              cardholder: '',
+            ).getCardGradient(context),
+          ),
         child: Padding(
           padding: const EdgeInsets.only(top: 20, bottom: 20),
           child: Column(
@@ -622,5 +609,8 @@ class CreditBack extends StatelessWidget {
 
 // Backward compatibility aliases
 typedef Creditcard = CreditCardPaymentScreen;
+// ignore: camel_case_types
 typedef creditfront = CreditFront;
+// ignore: camel_case_types
 typedef creditBack = CreditBack;
+

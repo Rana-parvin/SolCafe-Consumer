@@ -1,24 +1,24 @@
 import 'dart:io';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:solcafe/features/offers/presentation/screens/offers_screen.dart';
-import 'package:solcafe/features/referral/presentation/screens/referral_screen.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/core/utils/string_utils.dart';
+import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/auth/presentation/screens/login_screen.dart';
 import 'package:solcafe/features/auth/presentation/screens/my_account_screen.dart';
+import 'package:solcafe/features/offers/presentation/screens/offers_screen.dart';
 import 'package:solcafe/features/order/presentation/screens/order_history_screen.dart';
+import 'package:solcafe/features/referral/presentation/screens/referral_screen.dart';
 
-class Menuoptions extends StatefulWidget {
+class Menuoptions extends ConsumerStatefulWidget {
   const Menuoptions({super.key});
 
   @override
-  State<Menuoptions> createState() => _MenuoptionsState();
+  ConsumerState<Menuoptions> createState() => _MenuoptionsState();
 }
 
-class _MenuoptionsState extends State<Menuoptions> {
+class _MenuoptionsState extends ConsumerState<Menuoptions> {
   File? profileimage;
 
   @override
@@ -38,89 +38,79 @@ class _MenuoptionsState extends State<Menuoptions> {
   }
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  var emailid = FirebaseAuth.instance.currentUser?.email;
-  var username = FirebaseAuth.instance.currentUser?.displayName;
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider);
+    final emailid = currentUser?.email;
+    final username = currentUser?.displayName;
+    final colors = context.solcafeColors;
+
     return Drawer(
-      backgroundColor: const Color(0xFF352520),
+      backgroundColor: colors.drawerBackground,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.brown, // header color
+          UserAccountsDrawerHeader(
+            decoration: BoxDecoration(color: colors.drawerHeaderBackground),
+            accountName: Text(
+              StringUtils.capitalizeFullName(username ?? "Guest User") ?? "Guest User",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: colors.textPrimary,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Solcafe",
-                      style: GoogleFonts.playpenSans(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                        color: const Color(0xFFF5E1C0),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.coffee_outlined,
-                      size: 40,
-                      color: Color(0xFFF5E1C0),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 25),
-
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: profileimage != null
-                          ? FileImage(profileimage!)
-                          : null,
-                      radius: 24,
-                      child: profileimage == null
-                          ? const Icon(
-                              Icons.person_outline,
-                              color: Colors.brown,
-                              size: 28,
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          StringUtils.capitalizeFullName(username) ?? "",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          emailid.toString(),
-                          style: const TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+            accountEmail: Text(
+              emailid ?? "",
+              style: TextStyle(fontSize: 14, color: colors.textSecondary),
+            ),
+            currentAccountPicture: Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: colors.surfaceSecondary,
+                backgroundImage: profileimage != null ? FileImage(profileimage!) : null,
+                child: profileimage == null
+                    ? Icon(Icons.person, size: 28, color: colors.textPrimary)
+                    : null,
+              ),
             ),
           ),
+
           ListTile(
-            leading: const Tooltip(
-              message: 'My Account',
-              child: Icon(Icons.person_pin, color: Colors.white),
-            ),
-            title: const Text('My Account', style: TextStyle(color: Colors.white)),
+            leading: Icon(Icons.home_outlined, color: colors.textPrimary),
+            title: Text('Home', style: TextStyle(color: colors.textPrimary)),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+
+          ListTile(
+            leading: Icon(Icons.local_offer_outlined, color: colors.textPrimary),
+            title: Text('Offers', style: TextStyle(color: colors.textPrimary)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OffersScreen()),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: Icon(Icons.group_add_outlined, color: colors.textPrimary),
+            title: Text('Refer a friend', style: TextStyle(color: colors.textPrimary)),
+            onTap: () {
+              final code = generateReferralCode(6);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Your referral code: $code')),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: Icon(Icons.person_pin, color: colors.textPrimary),
+            title: Text('My Account', style: TextStyle(color: colors.textPrimary)),
             onTap: () {
               Navigator.push(
                 context,
@@ -130,71 +120,69 @@ class _MenuoptionsState extends State<Menuoptions> {
           ),
 
           ListTile(
-            leading: const Tooltip(
-              message: "Order history",
-              child: Icon(Icons.shopping_bag_outlined, color: Colors.white),
-            ),
-            title: const Text('Order History', style: TextStyle(color: Colors.white)),
+            leading: Icon(Icons.shopping_bag_outlined, color: colors.textPrimary),
+            title: Text('Order History', style: TextStyle(color: colors.textPrimary)),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const Orders()),
+                MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
               );
             },
           ),
 
           ListTile(
+            leading: Icon(Icons.help_outline, color: colors.textPrimary),
+            title: Text('Help & Support', style: TextStyle(color: colors.textPrimary)),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const Offers()),
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (modalContext) {
+                  final modalColors = modalContext.solcafeColors;
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Help & Support',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: modalColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        ListTile(
+                          leading: Icon(Icons.email, color: modalColors.accentGold),
+                          title: Text('Support Email', style: TextStyle(color: modalColors.textPrimary)),
+                          subtitle: Text('support@solcafe.com', style: TextStyle(color: modalColors.textSecondary)),
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.phone, color: modalColors.accentGold),
+                          title: Text('Customer Care', style: TextStyle(color: modalColors.textPrimary)),
+                          subtitle: Text('+1 800 555 0199', style: TextStyle(color: modalColors.textSecondary)),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(modalContext),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               );
             },
-            leading: const Tooltip(
-              message: "Offers and coupons",
-              child: Icon(Icons.card_giftcard_outlined, color: Colors.white),
-            ),
-            title: const Text(
-              'Offers and coupons',
-              style: TextStyle(color: Colors.white),
-            ),
           ),
+
+          Divider(color: colors.borderSubtle, thickness: 1),
+
           ListTile(
-            leading: const Tooltip(
-              message: "Share",
-              child: Icon(Icons.share_outlined, color: Colors.white),
-            ),
-            title: const Text(
-              'Refer a friend',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () {
-              // Share logic
-              generateReferralCode(8);
-            },
-          ),
-          ListTile(
-            leading: const Tooltip(
-              message: "About",
-              child: Icon(Icons.info_outline, color: Colors.white),
-            ),
-            title: const Text('About Us', style: TextStyle(color: Colors.white)),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Tooltip(
-              message: "Rate me",
-              child: Icon(Icons.star_rate_outlined, color: Colors.white),
-            ),
-            title: const Text('Rate us', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              // Rate us logic
-            },
-          ),
-          const Divider(thickness: 1.2, color: Colors.white30),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.white),
-            title: const Text('Logout', style: TextStyle(color: Colors.white)),
+            leading: Icon(Icons.logout, color: colors.statusCancelledText),
+            title: Text('Logout', style: TextStyle(color: colors.statusCancelledText)),
             onTap: () => logout(context),
           ),
         ],
@@ -204,17 +192,12 @@ class _MenuoptionsState extends State<Menuoptions> {
 
   Future<void> logout(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.signOut();
+      final logoutUseCase = ref.read(logoutUseCaseProvider);
+      await logoutUseCase();
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Logged out successfully",
-            style: TextStyle(color: Color.fromARGB(255, 41, 21, 14)),
-          ),
-          backgroundColor: Color(0xFFF5E1C0),
-        ),
+        const SnackBar(content: Text("Logged out successfully")),
       );
       Navigator.pushAndRemoveUntil(
         context,
@@ -225,8 +208,8 @@ class _MenuoptionsState extends State<Menuoptions> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Logout failed!$e"),
-          backgroundColor: Colors.red,
+          content: Text("Logout failed! $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }

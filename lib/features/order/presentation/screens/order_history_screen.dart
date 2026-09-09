@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
+import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/order/presentation/providers/order_provider.dart';
 
 class OrderHistoryScreen extends ConsumerWidget {
@@ -9,36 +10,39 @@ class OrderHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = FirebaseAuth.instance.currentUser;
+    final colors = context.solcafeColors;
+    final user = ref.watch(currentUserProvider);
+
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('User not logged in')),
+      return Scaffold(
+        body: Center(
+          child: Text('User not logged in', style: TextStyle(color: colors.textSecondary)),
+        ),
       );
     }
 
     final ordersAsync = ref.watch(userOrderHistoryStreamProvider(user.uid));
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text(
-          "My Orders",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("My Orders"),
         centerTitle: true,
       ),
       body: ordersAsync.when(
         data: (orders) {
           if (orders.isEmpty) {
             return Center(
-              child: Text(
-                "Looks like your order list is lonely.\nHow about a warm welcome cup?",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.raleway(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  height: 2,
-                  color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  "Looks like your order list is lonely.\nHow about a warm welcome cup?",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.readexPro(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    height: 1.6,
+                    color: colors.textSecondary,
+                  ),
                 ),
               ),
             );
@@ -50,37 +54,42 @@ class OrderHistoryScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final order = orders[index];
 
-              return Card(
-                color: Colors.brown.shade800,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: order.image.isNotEmpty
-                        ? (order.image.startsWith('http')
-                            ? Image.network(order.image, width: 50, height: 50, fit: BoxFit.cover)
-                            : Image.asset(order.image, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.coffee, color: Colors.white)))
-                        : const Icon(Icons.coffee, color: Colors.white),
-                  ),
-                  title: Text(
-                    order.itemName,
-                    style: GoogleFonts.raleway(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Card(
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: order.image.isNotEmpty
+                            ? (order.image.startsWith('http')
+                                ? Image.network(order.image, fit: BoxFit.cover)
+                                : Image.asset(order.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, color: colors.accentGold)))
+                            : Icon(Icons.coffee, color: colors.accentGold),
+                      ),
                     ),
-                  ),
-                  subtitle: Text(
-                    "Ordered on ${order.orderDate.toString().substring(0, 16)}",
-                    style: GoogleFonts.raleway(color: Colors.white70),
-                  ),
-                  trailing: Text(
-                    "₹${order.totalPrice.toStringAsFixed(2)}",
-                    style: GoogleFonts.raleway(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                    title: Text(
+                      order.itemName,
+                      style: GoogleFonts.readexPro(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "Ordered on ${order.orderDate.toString().substring(0, 16)}",
+                      style: GoogleFonts.openSans(color: colors.textSecondary, fontSize: 13),
+                    ),
+                    trailing: Text(
+                      "\$${order.totalPrice.toStringAsFixed(2)}",
+                      style: GoogleFonts.openSans(
+                        color: colors.accentGold,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),
@@ -88,11 +97,11 @@ class OrderHistoryScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(child: CircularProgressIndicator(color: colors.accentGold)),
         error: (err, stack) => Center(
           child: Text(
             err.toString(),
-            style: const TextStyle(color: Colors.red),
+            style: TextStyle(color: colors.statusCancelledText),
           ),
         ),
       ),
@@ -100,5 +109,4 @@ class OrderHistoryScreen extends ConsumerWidget {
   }
 }
 
-// Backward compatibility alias
 typedef Orders = OrderHistoryScreen;

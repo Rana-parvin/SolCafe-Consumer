@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/order/presentation/screens/confirm_order_screen.dart';
 
 class CartItemDetailsScreen extends StatelessWidget {
@@ -27,11 +28,11 @@ class CartItemDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF251806),
-        title: Text(name, style: GoogleFonts.adventPro(fontSize: 22)),
-        elevation: 0,
+        title: Text(name, style: GoogleFonts.readexPro(fontSize: 20)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -41,11 +42,14 @@ class CartItemDetailsScreen extends StatelessWidget {
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: image.isNotEmpty
-                    ? (image.startsWith('http')
-                        ? Image.network(image, height: 300, width: double.infinity, fit: BoxFit.cover)
-                        : Image.asset(image, height: 300, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.coffee, size: 100)))
-                    : const Icon(Icons.coffee, size: 100),
+                child: Container(
+                  color: colors.surfaceSecondary,
+                  child: image.isNotEmpty
+                      ? (image.startsWith('http')
+                          ? Image.network(image, height: 280, width: double.infinity, fit: BoxFit.cover)
+                          : Image.asset(image, height: 280, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 100, color: colors.textMuted)))
+                      : Icon(Icons.coffee, size: 100, color: colors.textMuted),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -54,17 +58,18 @@ class CartItemDetailsScreen extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: GoogleFonts.adventPro(
-                    fontSize: 24,
+                  style: GoogleFonts.readexPro(
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
-                  "₹${price.toStringAsFixed(2)}",
+                  "\$${price.toStringAsFixed(2)}",
                   style: GoogleFonts.openSans(
                     fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFFDAA520),
+                    fontWeight: FontWeight.bold,
+                    color: colors.accentGold,
                   ),
                 ),
               ],
@@ -73,15 +78,20 @@ class CartItemDetailsScreen extends StatelessWidget {
             if (description.isNotEmpty) ...[
               Text(
                 "Description",
-                style: GoogleFonts.openSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                style: GoogleFonts.readexPro(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 description,
-                style: GoogleFonts.openSans(fontSize: 14, height: 1.5),
+                style: GoogleFonts.openSans(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: colors.textSecondary,
+                ),
               ),
               const SizedBox(height: 20),
             ],
@@ -90,16 +100,18 @@ class CartItemDetailsScreen extends StatelessWidget {
               children: [
                 Text(
                   "Selected Size",
-                  style: GoogleFonts.openSans(
-                    fontSize: 18,
+                  style: GoogleFonts.readexPro(
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
                   size,
                   style: GoogleFonts.openSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -110,16 +122,18 @@ class CartItemDetailsScreen extends StatelessWidget {
               children: [
                 Text(
                   "Quantity",
-                  style: GoogleFonts.openSans(
-                    fontSize: 18,
+                  style: GoogleFonts.readexPro(
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
                   quantity.toString(),
                   style: GoogleFonts.openSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -144,20 +158,7 @@ class CartItemDetailsScreen extends StatelessWidget {
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 45, 29, 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  "Order Now",
-                  style: GoogleFonts.openSans(
-                    color: Colors.amber,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: const Text("Order Now"),
               ),
             ),
           ],
@@ -167,5 +168,4 @@ class CartItemDetailsScreen extends StatelessWidget {
   }
 }
 
-// Backward compatibility alias
 typedef CartItemDetailsPage = CartItemDetailsScreen;

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/core/utils/string_utils.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/auth/presentation/screens/edit_profile_screen.dart';
@@ -32,27 +33,28 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
   }
 
   Future<void> handleSignOut() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
       final logoutUseCase = ref.read(logoutUseCaseProvider);
       await logoutUseCase();
 
-      // Clear the local profile image cache path upon logout to avoid privacy leaks when another user logs in
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('profile_image_path');
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text("Logged out successfully")),
       );
 
-      // Clean up navigation stack and return to Login Screen
-      Navigator.of(context).pushAndRemoveUntil(
+      navigator.pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text("Sign Out failed: $e")),
       );
     }
@@ -60,61 +62,57 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).colorScheme;
+    final colors = context.solcafeColors;
     final authState = ref.watch(authStateChangesProvider);
 
     return Scaffold(
-      backgroundColor: theme.surface,
       appBar: AppBar(
+        title: const Text('My Account'),
         centerTitle: true,
-        elevation: 0,
-        title: const Text(
-          'My Account',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
       ),
       body: authState.when(
         data: (user) {
           if (user == null) {
-            return const Center(child: Text("No user details available"));
+            return Center(
+              child: Text("No user details available", style: TextStyle(color: colors.textSecondary)),
+            );
           }
           final formattedName = StringUtils.capitalizeFullName(user.displayName) ?? 'Guest User';
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
               children: [
-                // Profile Header
+                // Profile Header Card
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(24),
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [theme.primary, theme.secondary],
+                      colors: [colors.surfaceSecondary, colors.cardBackground],
                     ),
+                    border: Border.all(color: colors.cardBorder),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.primary.withOpacity(.35),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
+                        color: colors.cardBorder.withValues(alpha: 0.5),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
                       CircleAvatar(
-                        radius: 55,
-                        backgroundColor: Colors.white.withOpacity(.25),
-                        backgroundImage: profileImage != null
-                            ? FileImage(profileImage!)
-                            : null,
+                        radius: 50,
+                        backgroundColor: colors.accentGoldSubtle,
+                        backgroundImage: profileImage != null ? FileImage(profileImage!) : null,
                         child: profileImage == null
-                            ? const Icon(
+                            ? Icon(
                                 Icons.person_rounded,
                                 size: 50,
-                                color: Colors.white,
+                                color: colors.accentGold,
                               )
                             : null,
                       ),
@@ -122,25 +120,26 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
                       Text(
                         formattedName,
                         style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         user.email,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: colors.textSecondary,
+                          fontSize: 14,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 24),
 
-                // Info Cards
+                // Info Tiles
                 _infoTile(
                   context,
                   icon: Icons.email_rounded,
@@ -167,10 +166,10 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                     );
-                    loadImage(); // Reload image in case it was updated
+                    loadImage();
                   },
                 ),
-                const SizedBox(height: 25),
+                const SizedBox(height: 14),
                 _actionButton(
                   context,
                   icon: Icons.logout_rounded,
@@ -182,8 +181,10 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Error: $e")),
+        loading: () => Center(child: CircularProgressIndicator(color: colors.accentGold)),
+        error: (e, _) => Center(
+          child: Text("Error: $e", style: TextStyle(color: colors.statusCancelledText)),
+        ),
       ),
     );
   }
@@ -194,19 +195,20 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
     required String title,
     required String value,
   }) {
-    final theme = Theme.of(context).colorScheme;
+    final colors = context.solcafeColors;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
-        color: theme.secondary,
-        borderRadius: BorderRadius.circular(20),
+        color: colors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: theme.primary.withOpacity(.15),
-            child: Icon(icon, color: theme.primary),
+            backgroundColor: colors.accentGoldSubtle,
+            child: Icon(icon, color: colors.accentGold, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -215,13 +217,13 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontSize: 13, color: theme.primary),
+                  style: TextStyle(fontSize: 12, color: colors.textMuted),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: TextStyle(
-                    color: theme.primary,
+                    color: colors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -241,31 +243,30 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    final theme = Theme.of(context).colorScheme;
-
-    // Fixed contrast: Destructive buttons use red background with white text, others use amber/brown accents
-    final Color buttonBg = isDestructive ? Colors.red.shade800 : Colors.brown.shade800;
-    final Color textIconColor = Colors.white;
+    final colors = context.solcafeColors;
+    final Color buttonBg = isDestructive ? colors.statusCancelledBackground : colors.cardBackground;
+    final Color textIconColor = isDestructive ? colors.statusCancelledText : colors.textPrimary;
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        height: 56,
+        height: 52,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           color: buttonBg,
+          border: Border.all(color: isDestructive ? colors.statusCancelledText.withValues(alpha: 0.3) : colors.cardBorder),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: textIconColor),
+            Icon(icon, color: textIconColor, size: 20),
             const SizedBox(width: 10),
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
                 color: textIconColor,
               ),
             ),

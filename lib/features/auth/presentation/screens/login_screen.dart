@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/auth/presentation/screens/signup_screen.dart';
+
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -37,8 +40,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SnackBar(content: Text("Successfully logged in!")),
         );
         
-        // Correct the duplicate navigation overlay bug by popping auth screens back to root.
-        // AuthWrapper is the root of the app and will automatically render the main layout on auth update.
         Navigator.of(context).popUntil((route) => route.isFirst);
       } catch (e) {
         if (!mounted) return;
@@ -53,166 +54,118 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF3E2820),
-      resizeToAvoidBottomInset: false,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(15),
-            child: Container(
+      backgroundColor: colors.surfacePrimary,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: ConstrainedCenterContainer(
+              maxWidth: 480,
+              child: Container(
+
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color.fromARGB(255, 100, 82, 76),
-                    blurRadius: 10,
-                    offset: Offset(1, 1),
+                    color: colors.cardBorder,
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
-                color: const Color(0xFFF5F2F2),
+                color: colors.cardBackground,
               ),
+              padding: const EdgeInsets.all(20),
               child: Form(
                 key: formkey,
                 child: Column(
                   children: [
                     Image.asset(
                       "assets/images/cup icon.jpg",
-                      height: 135,
-                      width: 135,
+                      height: 120,
+                      width: 120,
                     ),
+                    const SizedBox(height: 12),
                     Text(
-                      "access your account",
-                      style: GoogleFonts.lato(
+                      "Access your account",
+                      style: GoogleFonts.readexPro(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 50, 18, 6),
+                        color: colors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: TextFormField(
-                        style: const TextStyle(
-                          color: Color(0xFF321206),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        controller: email,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please enter your email";
-                          }
-                          return null;
-                        },
-                        decoration: const InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(10),
-                              topRight: Radius.circular(10),
-                            ),
-                            borderSide: BorderSide(color: Color(0xFF321206)),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(10),
-                              topRight: Radius.circular(10),
-                            ),
-                          ),
-                          prefixIcon: Icon(
-                            Icons.mail_outline,
-                            color: Color.fromARGB(255, 50, 18, 6),
-                          ),
-                          hintText: "Email",
-                          hintStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF321206),
-                          ),
-                        ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: email,
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: colors.textPrimary),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your email";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.mail_outline, color: colors.accentGold),
+                        hintText: "Email",
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: TextFormField(
-                        style: const TextStyle(
-                          color: Color(0xFF321206),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        obscureText: isobscure,
-                        controller: password,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please enter your password";
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          enabledBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10),
-                            ),
-                            borderSide: BorderSide(color: Color(0xFF321206)),
-                          ),
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10),
-                            ),
-                          ),
-                          prefixIcon: const Icon(
-                            Icons.lock_outline,
-                            color: Color(0xFF321206),
-                          ),
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                isobscure = !isobscure;
-                              });
-                            },
-                            icon: Icon(
-                              isobscure
-                                  ? Icons.visibility_off
-                                  : Icons.visibility_outlined,
-                              color: const Color(0xFF321206),
-                            ),
-                          ),
-                          hintText: "Password",
-                          hintStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 50, 18, 6),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: password,
+                      obscureText: isobscure,
+                      style: TextStyle(color: colors.textPrimary),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your password";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.lock_outline, color: colors.accentGold),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              isobscure = !isobscure;
+                            });
+                          },
+                          icon: Icon(
+                            isobscure ? Icons.visibility_off : Icons.visibility_outlined,
+                            color: colors.textSecondary,
                           ),
                         ),
+                        hintText: "Password",
                       ),
                     ),
-                    Container(
-                      width: 350,
-                      padding: const EdgeInsets.all(8),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
                       child: ElevatedButton(
                         onPressed: isloading ? null : login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 56, 27, 17),
-                        ),
                         child: isloading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
                               )
-                            : const Text(
-                                "Login",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                            : const Text("Login"),
                       ),
                     ),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           "Don't have an account?",
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 50, 18, 6),
+                            fontWeight: FontWeight.w500,
+                            color: colors.textSecondary,
                           ),
                         ),
                         TextButton(
@@ -221,14 +174,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               MaterialPageRoute(builder: (context) => const SignupScreen()),
                             );
                           },
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF251914),
-                          ),
                           child: const Text(
                             "Sign up",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],

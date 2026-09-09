@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solcafe/core/presentation/widgets/app_drawer.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/cart/presentation/screens/cart_screen.dart';
+import 'package:solcafe/features/menu/presentation/providers/menu_provider.dart';
 import 'package:solcafe/features/menu/presentation/screens/search_screen.dart';
 import 'package:solcafe/features/menu/presentation/widgets/menu_item_card.dart';
 
-class MenuTabsScreen extends StatefulWidget {
+class MenuTabsScreen extends ConsumerStatefulWidget {
   const MenuTabsScreen({super.key});
 
   @override
-  State<MenuTabsScreen> createState() => _MenuTabsScreenState();
+  ConsumerState<MenuTabsScreen> createState() => _MenuTabsScreenState();
 }
 
-class _MenuTabsScreenState extends State<MenuTabsScreen> with TickerProviderStateMixin {
+class _MenuTabsScreenState extends ConsumerState<MenuTabsScreen> with TickerProviderStateMixin {
   late TabController tabcontrol;
 
   @override
@@ -29,34 +32,29 @@ class _MenuTabsScreenState extends State<MenuTabsScreen> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF301F19),
-        iconTheme: const IconThemeData(color: Color(0xFFEBE2DE)),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Text(
-                "Good to see you🍵",
-                style: GoogleFonts.rancho(
-                  color: const Color(0xFFF5F5DC),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                  fontSize: 19,
-                ),
-              ),
-            ),
-          ],
+        title: Text(
+          "Good to see you 🍵",
+          style: GoogleFonts.readexPro(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: colors.textPrimary,
+          ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: () {
-              showSearch(context: context, delegate: FirestoreSearchDelegate());
+              final searchUseCase = ref.read(searchMenuItemsUseCaseProvider);
+              showSearch(
+                context: context,
+                delegate: FirestoreSearchDelegate(searchMenuItemsUseCase: searchUseCase),
+              );
             },
-            icon: const Icon(Icons.search),
+            icon: Icon(Icons.search, color: colors.textPrimary),
           ),
           IconButton(
             onPressed: () {
@@ -65,27 +63,31 @@ class _MenuTabsScreenState extends State<MenuTabsScreen> with TickerProviderStat
                 MaterialPageRoute(builder: (context) => const CartScreen()),
               );
             },
-            icon: const Icon(Icons.shopping_cart_outlined),
+            icon: Icon(Icons.shopping_cart_outlined, color: colors.textPrimary),
           ),
         ],
         bottom: TabBar(
           indicatorSize: TabBarIndicatorSize.tab,
-          indicatorColor: Colors.white,
-          unselectedLabelColor: Colors.grey[400],
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Colors.amber,
+          indicatorColor: colors.accentGold,
+          labelColor: colors.accentGold,
+          unselectedLabelColor: colors.textSecondary,
+          labelStyle: GoogleFonts.openSans(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
+          unselectedLabelStyle: GoogleFonts.openSans(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
           controller: tabcontrol,
           isScrollable: true,
           tabs: const [
             Tab(text: "All"),
             Tab(text: "Coffee"),
-            Tab(text: "Non coffee"),
+            Tab(text: "Non Coffee"),
             Tab(text: "Cake"),
             Tab(text: "Pastry"),
-            Tab(text: "others"),
+            Tab(text: "Others"),
           ],
         ),
       ),
@@ -105,5 +107,4 @@ class _MenuTabsScreenState extends State<MenuTabsScreen> with TickerProviderStat
   }
 }
 
-// Backward compatibility alias
 typedef Tabpage = MenuTabsScreen;

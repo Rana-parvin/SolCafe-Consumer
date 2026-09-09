@@ -29,3 +29,30 @@ final userOrderHistoryStreamProvider = StreamProvider.family<List<OrderEntity>, 
   final useCase = ref.watch(getOrderHistoryUseCaseProvider);
   return useCase(userId);
 });
+
+/// Standardized payment & order placement state notifier using AsyncValue.
+/// Ensures loading state, error presentation, lifecycle safety, and duplicate submission prevention.
+class OrderPaymentNotifier extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() {
+    return const AsyncData(null);
+  }
+
+  Future<bool> placeOrder(OrderEntity order) async {
+    if (state.isLoading) return false;
+
+    state = const AsyncLoading();
+    try {
+      final placeOrderUseCase = ref.read(placeOrderUseCaseProvider);
+      await placeOrderUseCase(order);
+      state = const AsyncData(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return false;
+    }
+  }
+}
+
+final orderPaymentNotifierProvider =
+    NotifierProvider<OrderPaymentNotifier, AsyncValue<void>>(OrderPaymentNotifier.new);

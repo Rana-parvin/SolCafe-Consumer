@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OnboardingSlide1 extends StatelessWidget {
   const OnboardingSlide1({super.key});
@@ -17,40 +18,54 @@ class OnboardingSlide1 extends StatelessWidget {
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.all(60.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: 15, bottom: 0, left: 5),
-                child: Text(
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.65),
+                Colors.black.withValues(alpha: 0.2),
+                Colors.black.withValues(alpha: 0.7),
+              ],
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   "Wake Up With The Perfect Brew",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Color.fromARGB(255, 122, 97, 86),
-                    fontSize: 30,
+                  style: GoogleFonts.readexPro(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 32,
+                    height: 1.2,
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(right: 10, left: 10),
-                child: Divider(
-                  thickness: 1.3,
-                  color: Color.fromARGB(255, 231, 204, 204),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 3, right: 10, left: 13),
-                child: Text(
-                  "Explore Rich Flavors And Hand-crafted Coffee Made Just For You",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 255, 166, 125),
-                    fontSize: 18,
+                const SizedBox(height: 12),
+                Container(
+                  height: 3,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5B25D),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(
+                  "Explore rich flavors and hand-crafted coffee made just for you.",
+                  style: GoogleFonts.openSans(
+                    color: const Color(0xFFF5E1C0),
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -58,5 +73,4 @@ class OnboardingSlide1 extends StatelessWidget {
   }
 }
 
-// Backward compatibility alias
 typedef Dope1 = OnboardingSlide1;

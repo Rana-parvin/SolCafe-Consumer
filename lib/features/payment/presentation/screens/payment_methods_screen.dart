@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/order/presentation/screens/order_history_screen.dart';
 import 'package:solcafe/features/payment/presentation/screens/cod_payment_screen.dart';
 import 'package:solcafe/features/payment/presentation/screens/credit_card_payment_screen.dart';
@@ -7,7 +9,7 @@ import 'package:solcafe/features/payment/presentation/screens/net_banking_paymen
 import 'package:solcafe/features/payment/presentation/screens/upi_payment_screen.dart';
 import 'package:solcafe/features/payment/presentation/widgets/payment_option_card.dart';
 
-class PaymentMethodsScreen extends StatefulWidget {
+class PaymentMethodsScreen extends ConsumerStatefulWidget {
   final String totalprice;
   final String itemid;
   final String selectedsize;
@@ -26,93 +28,92 @@ class PaymentMethodsScreen extends StatefulWidget {
   });
 
   @override
-  State<PaymentMethodsScreen> createState() => _PaymentMethodsScreenState();
+  ConsumerState<PaymentMethodsScreen> createState() => _PaymentMethodsScreenState();
 }
 
-class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
+class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
   String selectedoption = "";
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
+      appBar: AppBar(title: const Text("Payment Methods")),
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(25.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: const Color.fromARGB(255, 245, 242, 242),
-              ),
-              height: 600,
-              width: 500,
-              child: Column(
-                children: [
-                  Image.asset(
-                    "assets/images/cup icon.jpg",
-                    height: 130,
-                    width: 130,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Text(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: colors.cardBackground,
+                  border: Border.all(color: colors.cardBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.cardBorder,
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      "assets/images/cup icon.jpg",
+                      height: 100,
+                      width: 100,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
                       "Choose payment method",
-                      style: GoogleFonts.adventPro(
-                        fontSize: 22,
+                      style: GoogleFonts.readexPro(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.brown[900],
+                        color: colors.textPrimary,
                       ),
                     ),
-                  ),
-                  PaymentOptionCard(
-                    value: "Credit card / Debit card",
-                    groupValue: selectedoption,
-                    onChanged: (val) => setState(() => selectedoption = val),
-                    trailing: const Icon(Icons.credit_card, color: Colors.brown),
-                    radioColor: const Color(0xFF381507),
-                  ),
-                  PaymentOptionCard(
-                    value: "Net banking",
-                    groupValue: selectedoption,
-                    onChanged: (val) => setState(() => selectedoption = val),
-                    trailing: const Icon(Icons.account_balance, color: Colors.brown),
-                    radioColor: const Color(0xFF381507),
-                  ),
-                  PaymentOptionCard(
-                    value: "UPI",
-                    groupValue: selectedoption,
-                    onChanged: (val) => setState(() => selectedoption = val),
-                    trailing: const Icon(Icons.phone_android, color: Colors.brown),
-                    radioColor: const Color(0xFF381507),
-                  ),
-                  PaymentOptionCard(
-                    value: "Cash on delivery",
-                    groupValue: selectedoption,
-                    onChanged: (val) => setState(() => selectedoption = val),
-                    trailing: const Icon(Icons.money, color: Colors.brown),
-                    radioColor: const Color(0xFF381507),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: SizedBox(
+                    const SizedBox(height: 16),
+                    PaymentOptionCard(
+                      value: "Credit card / Debit card",
+                      groupValue: selectedoption,
+                      onChanged: (val) => setState(() => selectedoption = val),
+                      trailing: Icon(Icons.credit_card, color: colors.accentGold),
+                    ),
+                    PaymentOptionCard(
+                      value: "Net banking",
+                      groupValue: selectedoption,
+                      onChanged: (val) => setState(() => selectedoption = val),
+                      trailing: Icon(Icons.account_balance, color: colors.accentGold),
+                    ),
+                    PaymentOptionCard(
+                      value: "UPI",
+                      groupValue: selectedoption,
+                      onChanged: (val) => setState(() => selectedoption = val),
+                      trailing: Icon(Icons.phone_android, color: colors.accentGold),
+                    ),
+                    PaymentOptionCard(
+                      value: "Cash on delivery",
+                      groupValue: selectedoption,
+                      onChanged: (val) => setState(() => selectedoption = val),
+                      trailing: Icon(Icons.money, color: colors.accentGold),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: 50,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF381507),
-                        ),
                         onPressed: selectedoption.isEmpty
                             ? null
                             : () => handleProceed(context),
-                        child: const Text(
-                          "Proceed",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
+                        child: const Text("Proceed"),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -122,10 +123,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 
   Future<void> handleProceed(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
       if (selectedoption == "Credit card / Debit card") {
-        Navigator.push(
-          context,
+        navigator.push(
           MaterialPageRoute(
             builder: (context) => CreditCardPaymentScreen(
               image: widget.image,
@@ -138,8 +141,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ),
         );
       } else if (selectedoption == "Net banking") {
-        Navigator.push(
-          context,
+        navigator.push(
           MaterialPageRoute(
             builder: (context) => NetBankingPaymentScreen(
               itemid: widget.itemid,
@@ -152,7 +154,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ),
         );
       } else if (selectedoption == "UPI") {
-        await upiPayment(
+        final success = await upiPayment(
+          ref: ref,
           itemId: widget.itemid,
           size: widget.selectedsize,
           quantity: widget.selectedquantity,
@@ -161,15 +164,21 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           itemname: widget.name,
         );
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("UPI payment completed successfully!")),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
-        );
+        if (success) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text("UPI payment completed successfully!")),
+          );
+          navigator.push(
+            MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
+          );
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(content: Text("UPI payment failed! Please try again.")),
+          );
+        }
       } else {
-        await createCashOnDeliveryOrder(
+        final success = await createCashOnDeliveryOrder(
+          ref: ref,
           itemId: widget.itemid,
           size: widget.selectedsize,
           quantity: widget.selectedquantity,
@@ -178,21 +187,26 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           itemname: widget.name,
         );
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Your order has been placed successfully! Thank you for choosing SolCafe.",
+        if (success) {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Your order has been placed successfully! Thank you for choosing SolCafe.",
+              ),
             ),
-          ),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
-        );
+          );
+          navigator.push(
+            MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
+          );
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(content: Text("Failed to place order! Please try again.")),
+          );
+        }
       }
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text(
             "Sorry, we couldn't place your order! Please try again.",
@@ -203,5 +217,4 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 }
 
-// Backward compatibility alias
 typedef Paymentmethod = PaymentMethodsScreen;

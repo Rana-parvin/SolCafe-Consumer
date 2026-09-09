@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
 
 class PaymentOptionCard extends StatelessWidget {
   final String value;
   final String groupValue;
   final void Function(String) onChanged;
   final Widget trailing;
-  final Color radioColor;
+  final Color? radioColor;
 
   const PaymentOptionCard({
     super.key,
@@ -14,37 +15,46 @@ class PaymentOptionCard extends StatelessWidget {
     required this.groupValue,
     required this.onChanged,
     required this.trailing,
-    required this.radioColor,
+    this.radioColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+    final isSelected = value == groupValue;
+
     return Padding(
-      padding: const EdgeInsets.only(left: 17, right: 17, bottom: 6),
-      child: InkWell(
-        onTap: () => onChanged(value),
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: Card(
+        color: isSelected ? colors.accentGoldSubtle : colors.cardBackground,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isSelected ? colors.accentGold : colors.cardBorder,
+            width: isSelected ? 1.5 : 1.0,
           ),
-          color: const Color.fromARGB(255, 252, 247, 239),
-          child: ListTile(
-            leading: Radio<String>(
-              value: value,
-              groupValue: groupValue,
-              onChanged: (val) {
-                if (val != null) onChanged(val);
-              },
-              fillColor: WidgetStatePropertyAll(radioColor),
-            ),
-            trailing: trailing,
-            title: Text(
-              value,
-              style: GoogleFonts.lato(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.brown[900],
-              ),
+        ),
+        child: ListTile(
+          onTap: () => onChanged(value),
+          // ignore: deprecated_member_use
+          leading: Radio<String>(
+            // ignore: deprecated_member_use
+            groupValue: groupValue,
+            value: value,
+            // ignore: deprecated_member_use
+            onChanged: (val) {
+              if (val != null) onChanged(val);
+            },
+            activeColor: colors.accentGold,
+          ),
+
+          trailing: trailing,
+          title: Text(
+            value,
+            style: GoogleFonts.readexPro(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
             ),
           ),
         ),

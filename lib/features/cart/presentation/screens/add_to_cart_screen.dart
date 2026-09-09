@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
+import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/cart/data/models/cart_item_model.dart';
 import 'package:solcafe/features/cart/presentation/providers/cart_provider.dart';
 import 'package:solcafe/features/cart/presentation/screens/cart_screen.dart';
@@ -29,9 +30,12 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
   bool _isLoading = false;
 
   Future<void> handleAddToCart(BuildContext context) async {
-    final user = FirebaseAuth.instance.currentUser;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final user = ref.read(currentUserProvider);
+
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text("Please login first")),
       );
       return;
@@ -65,17 +69,16 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text("Item added to cart")),
       );
 
-      Navigator.pushReplacement(
-        context,
+      navigator.pushReplacement(
         MaterialPageRoute(builder: (_) => const CartScreen()),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text("Failed to add to cart: $e")),
       );
     } finally {
@@ -89,6 +92,7 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
     final String image = widget.itemData['image'] ?? '';
     final priceVal = widget.itemData['price'];
     final String description = widget.itemData['description'] ?? '';
+    final colors = context.solcafeColors;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add to Cart')),
@@ -101,45 +105,55 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: image.isNotEmpty
-                      ? (image.startsWith('http')
-                          ? Image.network(image, height: 320, width: double.infinity, fit: BoxFit.cover)
-                          : Image.asset(image, height: 320, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.coffee, size: 100)))
-                      : const Icon(Icons.coffee, size: 100),
+                  child: Container(
+                    color: colors.surfaceSecondary,
+                    child: image.isNotEmpty
+                        ? (image.startsWith('http')
+                            ? Image.network(image, height: 280, width: double.infinity, fit: BoxFit.cover)
+                            : Image.asset(image, height: 280, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 100, color: colors.textMuted)))
+                        : Icon(Icons.coffee, size: 100, color: colors.textMuted),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
               Card(
-                color: const Color(0xFF251806),
                 child: ListTile(
                   title: Text(
                     name,
-                    style: GoogleFonts.adventPro(
-                      fontSize: 24,
+                    style: GoogleFonts.readexPro(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFFF5E1C0),
+                      color: colors.textPrimary,
                     ),
                   ),
                   subtitle: Text(
-                    '\$ $priceVal',
+                    '\$$priceVal',
                     style: GoogleFonts.openSans(
                       fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFDAA520),
+                      fontWeight: FontWeight.bold,
+                      color: colors.accentGold,
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               if (description.isNotEmpty) ...[
-                const Text(
+                Text(
                   'Description',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.readexPro(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   description,
-                  style: GoogleFonts.openSans(fontSize: 14, height: 1.5),
+                  style: GoogleFonts.openSans(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: colors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -149,11 +163,15 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
                   Text(
                     'Selected Size',
                     style: GoogleFonts.openSans(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: colors.textPrimary,
                     ),
                   ),
-                  Text(widget.size),
+                  Text(
+                    widget.size,
+                    style: TextStyle(color: colors.textSecondary, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -162,20 +180,22 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
                   Text(
                     'Quantity',
                     style: GoogleFonts.openSans(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: colors.textPrimary,
                     ),
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF251806),
+                      color: colors.accentGoldSubtle,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: colors.accentGold),
                     ),
                     child: Text(
                       widget.quantity.toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      style: TextStyle(color: colors.accentGold, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -186,15 +206,9 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : () => handleAddToCart(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF251806),
-                  ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Add to Cart',
-                          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
-                        ),
+                      : const Text('Add to Cart'),
                 ),
               ),
             ],
@@ -205,5 +219,4 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
   }
 }
 
-// Backward compatibility alias
 typedef AddToCartPage = AddToCartScreen;

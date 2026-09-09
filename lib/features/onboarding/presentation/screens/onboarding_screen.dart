@@ -25,98 +25,95 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            PageView(
-              onPageChanged: (index) {
-                setState(() {
-                  onlastpage = (index == 2);
-                });
-              },
-              controller: controller,
-              children: const [
-                OnboardingSlide1(),
-                OnboardingSlide2(),
-                OnboardingSlide3(),
-              ],
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+      body: Stack(
+        children: [
+          PageView(
+            onPageChanged: (index) {
+              setState(() {
+                onlastpage = (index == 2);
+              });
+            },
+            controller: controller,
+            children: const [
+              OnboardingSlide1(),
+              OnboardingSlide2(),
+              OnboardingSlide3(),
+            ],
+          ),
+          Positioned(
+            bottom: 40,
+            left: 24,
+            right: 24,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 30, left: 30, right: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          controller.previousPage(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeIn,
-                          );
-                        },
-                        child: const Icon(
-                          Icons.arrow_back_ios,
-                          color: Colors.white,
-                          size: 25,
-                        ),
-                      ),
-                      SmoothPageIndicator(
-                        controller: controller,
-                        count: 3,
-                        effect: const WormEffect(
-                          dotColor: Color.fromARGB(255, 224, 219, 217),
-                          activeDotColor: Color.fromARGB(255, 67, 19, 1),
-                        ),
-                      ),
-                      onlastpage
-                          ? Padding(
-                              padding: const EdgeInsets.only(left: 50),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                  );
-                                },
-                                child: const Text(
-                                  "Get Started",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Color.fromARGB(255, 106, 2, 2),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : GestureDetector(
-                              onTap: () {
-                                controller.nextPage(
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeIn,
-                                );
-                              },
-                              child: const Text(
-                                "Next",
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 106, 2, 2),
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                    ],
+                IconButton(
+                  onPressed: () {
+                    controller.previousPage(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                    size: 22,
                   ),
                 ),
+                SmoothPageIndicator(
+                  controller: controller,
+                  count: 3,
+                  effect: const WormEffect(
+                    dotHeight: 10,
+                    dotWidth: 10,
+                    dotColor: Colors.white38,
+                    activeDotColor: Color(0xFFE5B25D),
+                  ),
+                ),
+                onlastpage
+                    ? ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE5B25D),
+                          foregroundColor: const Color(0xFF1C120C),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text(
+                          "Get Started",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: () {
+                          controller.nextPage(
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        child: const Text(
+                          "Next",
+                          style: TextStyle(
+                            color: Color(0xFFE5B25D),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// Backward compatibility alias
 typedef Dopemain = OnboardingScreen;
