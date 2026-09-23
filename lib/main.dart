@@ -1,9 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solcafe/theme%20management/theme_provider.dart';
+import 'package:solcafe/core/theme/app_theme.dart';
+import 'package:solcafe/core/theme/solcafe_colors.dart';
+import 'package:solcafe/core/theme/theme_provider.dart';
+import 'package:solcafe/features/auth/presentation/screens/splash_screen.dart';
 import 'package:solcafe/firebase_options.dart';
-import 'package:solcafe/user%20authentication/splash%20screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,12 +22,31 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider); 
+    final solCafeMode = ref.watch(themeNotifierProvider);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: theme,
-    
-      home: const UserSplash(), 
+      title: 'SolCafe',
+      theme: creamTheme,
+      darkTheme: brownTheme,
+      themeMode: solCafeMode.flutterThemeMode,
+      builder: (context, child) {
+        // Synchronize platform System UI overlay style (status bar & nav bar) with active theme
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final solcafeCols = isDark ? SolCafeColors.dark : SolCafeColors.light;
+
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+            systemNavigationBarColor: solcafeCols.navBarBackground,
+            systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          ),
+        );
+        return child!;
+      },
+      home: const UserSplash(),
     );
   }
 }
