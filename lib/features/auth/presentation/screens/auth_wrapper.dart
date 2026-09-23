@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
+import 'package:solcafe/features/auth/presentation/screens/login_screen.dart';
 import 'package:solcafe/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:solcafe/features/home/presentation/providers/bottom_nav_provider.dart';
 import 'package:solcafe/features/home/presentation/screens/main_screen.dart';
@@ -16,6 +18,9 @@ class AuthWrapper extends ConsumerWidget {
       data: (user) {
         if (user != null) {
           return const BottomNavHolder();
+        }
+        if (kIsWeb) {
+          return const LoginScreen();
         }
         return const Dopemain();
       },

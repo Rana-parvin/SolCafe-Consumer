@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/order/domain/entities/order_entity.dart';
@@ -55,136 +56,139 @@ class _NetBankingPaymentScreenState extends ConsumerState<NetBankingPaymentScree
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.accentGold,
-                      colors.accentGold.withValues(alpha: 0.8),
+          child: ConstrainedCenterContainer(
+            maxWidth: 600,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      colors: [
+                        colors.accentGold,
+                        colors.accentGold.withValues(alpha: 0.8),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.cardBorder,
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.cardBorder,
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Amount Payable",
-                      style: GoogleFonts.openSans(
-                        fontSize: 16,
-                        color: colors.textOnAccent,
-                      ),
-                    ),
-                    Text(
-                      "\$${widget.totalprice}",
-                      style: GoogleFonts.readexPro(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: colors.textOnAccent,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                "Popular Banks",
-                style: GoogleFonts.readexPro(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: banks.length,
-                  itemBuilder: (context, index) {
-                    final bank = banks[index];
-                    final isSelected = selectedBank == bank["name"];
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: InkWell(
-                        onTap: isLoading
-                            ? null
-                            : () {
-                                setState(() {
-                                  selectedBank = bank["name"];
-                                });
-                              },
-                        borderRadius: BorderRadius.circular(16),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isSelected ? colors.accentGold : colors.cardBorder,
-                              width: isSelected ? 2 : 1,
-                            ),
-                            color: isSelected ? colors.accentGoldSubtle : colors.cardBackground,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                bank["icon"],
-                                color: isSelected ? colors.accentGold : colors.textSecondary,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(
-                                  bank["name"],
-                                  style: GoogleFonts.openSans(
-                                    fontSize: 16,
-                                    color: colors.textPrimary,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                              if (isSelected)
-                                Icon(
-                                  Icons.check_circle,
-                                  color: colors.accentGold,
-                                ),
-                            ],
-                          ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Amount Payable",
+                        style: GoogleFonts.openSans(
+                          fontSize: 16,
+                          color: colors.textOnAccent,
                         ),
                       ),
-                    );
-                  },
+                      Text(
+                        "\$${widget.totalprice}",
+                        style: GoogleFonts.readexPro(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textOnAccent,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: (selectedBank == null || isLoading)
-                      ? null
-                      : () async {
-                          await _processOrder();
-                        },
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text("Pay via $selectedBank"),
+                const SizedBox(height: 24),
+                Text(
+                  "Popular Banks",
+                  style: GoogleFonts.readexPro(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: banks.length,
+                    itemBuilder: (context, index) {
+                      final bank = banks[index];
+                      final isSelected = selectedBank == bank["name"];
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: InkWell(
+                          onTap: isLoading
+                              ? null
+                              : () {
+                                  setState(() {
+                                    selectedBank = bank["name"];
+                                  });
+                                },
+                          borderRadius: BorderRadius.circular(16),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected ? colors.accentGold : colors.cardBorder,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              color: isSelected ? colors.accentGoldSubtle : colors.cardBackground,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  bank["icon"],
+                                  color: isSelected ? colors.accentGold : colors.textSecondary,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    bank["name"],
+                                    style: GoogleFonts.openSans(
+                                      fontSize: 16,
+                                      color: colors.textPrimary,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: colors.accentGold,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: (selectedBank == null || isLoading)
+                        ? null
+                        : () async {
+                            await _processOrder();
+                          },
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text("Pay via ${selectedBank ?? ''}"),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

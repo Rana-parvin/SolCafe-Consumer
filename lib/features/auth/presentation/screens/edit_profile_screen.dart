@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/core/utils/string_utils.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
@@ -111,114 +112,118 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              Center(
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: pickimage,
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundColor: colors.accentGoldSubtle,
-                            backgroundImage: profileImage != null ? FileImage(profileImage!) : null,
-                            child: profileImage == null
-                                ? Icon(Icons.person_outline, size: 50, color: colors.accentGold)
-                                : null,
-                          ),
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: colors.accentGold,
-                            child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-                          ),
-                        ],
+          child: ConstrainedCenterContainer(
+            maxWidth: 520,
+            child: Column(
+              children: [
+                Center(
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: pickimage,
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: colors.accentGoldSubtle,
+                              backgroundImage: profileImage != null ? FileImage(profileImage!) : null,
+                              child: profileImage == null
+                                  ? Icon(Icons.person_outline, size: 45, color: colors.accentGold)
+                                  : null,
+                            ),
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: colors.accentGold,
+                              child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      nameController.text.isNotEmpty ? nameController.text : "Update Profile",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: colors.textPrimary,
+                      const SizedBox(height: 14),
+                      Text(
+                        nameController.text.isNotEmpty ? nameController.text : "Update Profile",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: colors.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Form(
-                key: formkey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      style: TextStyle(color: colors.textPrimary),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Name is required";
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.person_outline, color: colors.accentGold),
-                        hintText: "Name",
+                const SizedBox(height: 24),
+                Form(
+                  key: formkey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        style: TextStyle(color: colors.textPrimary),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Name is required";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.person_outline, color: colors.accentGold),
+                          hintText: "Name",
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      style: TextStyle(color: colors.textPrimary),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Phone number is required";
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.call_outlined, color: colors.accentGold),
-                        hintText: "Phone number",
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: phoneController,
+                        keyboardType: TextInputType.phone,
+                        style: TextStyle(color: colors.textPrimary),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Phone number is required";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.call_outlined, color: colors.accentGold),
+                          hintText: "Phone number",
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      style: TextStyle(color: colors.textPrimary),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Email is required";
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.email_outlined, color: colors.accentGold),
-                        hintText: "Email address",
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: TextStyle(color: colors.textPrimary),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Email is required";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.email_outlined, color: colors.accentGold),
+                          hintText: "Email address",
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 28),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: isloading ? null : modifydetails,
-                        child: isloading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : const Text("Save Details"),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: isloading ? null : modifydetails,
+                          child: isloading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : const Text("Save Details"),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

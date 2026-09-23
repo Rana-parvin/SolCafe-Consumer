@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
@@ -15,16 +16,19 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     final colors = context.solcafeColors;
 
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Text(
-          "Looks like your wallet hasn’t been used here yet. Ready to order your first cup?",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.readexPro(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.6,
-            color: colors.textSecondary,
+      child: SingleChildScrollView(
+        child: ConstrainedCenterContainer(
+          maxWidth: 500,
+          padding: const EdgeInsets.all(30),
+          child: Text(
+            "Looks like your wallet hasn’t been used here yet. Ready to order your first cup?",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.readexPro(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              height: 1.6,
+              color: colors.textSecondary,
+            ),
           ),
         ),
       ),

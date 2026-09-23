@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/menu/domain/entities/menu_item_entity.dart';
 import 'package:solcafe/features/menu/domain/usecases/search_menu_items_usecase.dart';
@@ -65,23 +66,26 @@ class FirestoreSearchDelegate extends SearchDelegate<String> {
 
     return Container(
       color: colors.surfacePrimary,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: filtered.length,
-        itemBuilder: (context, index) {
-          final suggestion = filtered[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            child: ListTile(
-              leading: Icon(Icons.coffee, color: colors.accentGold),
-              title: Text(suggestion, style: TextStyle(color: colors.textPrimary)),
-              onTap: () {
-                query = suggestion;
-                showResults(context);
-              },
-            ),
-          );
-        },
+      child: ConstrainedCenterContainer(
+        maxWidth: 800,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            final suggestion = filtered[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              child: ListTile(
+                leading: Icon(Icons.coffee, color: colors.accentGold),
+                title: Text(suggestion, style: TextStyle(color: colors.textPrimary)),
+                onTap: () {
+                  query = suggestion;
+                  showResults(context);
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -120,56 +124,61 @@ class FirestoreSearchDelegate extends SearchDelegate<String> {
 
           final items = snapshot.data!;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final name = item.title;
-              final image = item.image;
-              final double price = double.tryParse(item.price) ?? 0.0;
+          return ConstrainedCenterContainer(
+            maxWidth: 800,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final name = item.title;
+                final image = item.image;
+                final double price = double.tryParse(item.price) ?? 0.0;
 
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: image.isNotEmpty
-                        ? (image.startsWith('http://') || image.startsWith('https://')
-                            ? Image.network(image, width: 50, height: 50, fit: BoxFit.cover)
-                            : Image.asset(image, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 40, color: colors.accentGold)))
-                        : Icon(Icons.coffee, size: 40, color: colors.accentGold),
-                  ),
-                  title: Text(
-                    name,
-                    style: TextStyle(fontWeight: FontWeight.bold, color: colors.textPrimary),
-                  ),
-                  subtitle: Text(
-                    "Price: \$${price.toStringAsFixed(2)}",
-                    style: TextStyle(color: colors.accentGold, fontWeight: FontWeight.w600),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(
-                          itemid: item.id,
-                          itemdata: {
-                            'name': item.title,
-                            'title': item.title,
-                            'description': item.description,
-                            'price': item.price,
-                            'image': item.image,
-                            'category': item.category,
-                          },
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: image.isNotEmpty
+                          ? (image.startsWith('http://') || image.startsWith('https://')
+                              ? Image.network(image, width: 50, height: 50, fit: BoxFit.cover)
+                              : Image.asset(image, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 40, color: colors.accentGold)))
+                          : Icon(Icons.coffee, size: 40, color: colors.accentGold),
+                    ),
+                    title: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.bold, color: colors.textPrimary),
+                    ),
+                    subtitle: Text(
+                      "Price: \$${price.toStringAsFixed(2)}",
+                      style: TextStyle(color: colors.accentGold, fontWeight: FontWeight.w600),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailScreen(
+                            itemid: item.id,
+                            itemdata: {
+                              'name': item.title,
+                              'title': item.title,
+                              'description': item.description,
+                              'price': item.price,
+                              'image': item.image,
+                              'category': item.category,
+                            },
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

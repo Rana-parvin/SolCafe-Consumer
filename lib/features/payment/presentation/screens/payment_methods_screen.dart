@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/order/presentation/screens/order_history_screen.dart';
 import 'package:solcafe/features/payment/presentation/screens/cod_payment_screen.dart';
@@ -37,14 +38,16 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.solcafeColors;
+    final iconSize = SolCafeBreakpoints.isLandscape(context) ? 65.0 : 100.0;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Payment Methods")),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(20.0),
+            child: ConstrainedCenterContainer(
+              maxWidth: 480,
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
@@ -63,13 +66,15 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      "assets/images/cup icon.jpg",
-                      height: 100,
-                      width: 100,
+                      "assets/images/cup icon.png",
+                      height: iconSize,
+                      width: iconSize,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       "Choose payment method",
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.readexPro(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/cart/data/models/cart_item_model.dart';
@@ -93,125 +94,133 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
     final priceVal = widget.itemData['price'];
     final String description = widget.itemData['description'] ?? '';
     final colors = context.solcafeColors;
+    final imageHeight = SolCafeBreakpoints.isLandscape(context) ? 160.0 : 250.0;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add to Cart')),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    color: colors.surfaceSecondary,
-                    child: image.isNotEmpty
-                        ? (image.startsWith('http')
-                            ? Image.network(image, height: 280, width: double.infinity, fit: BoxFit.cover)
-                            : Image.asset(image, height: 280, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 100, color: colors.textMuted)))
-                        : Icon(Icons.coffee, size: 100, color: colors.textMuted),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Card(
-                child: ListTile(
-                  title: Text(
-                    name,
-                    style: GoogleFonts.readexPro(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '\$$priceVal',
-                    style: GoogleFonts.openSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: colors.accentGold,
+          child: ConstrainedCenterContainer(
+            maxWidth: 700,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      color: colors.surfaceSecondary,
+                      constraints: BoxConstraints(maxHeight: imageHeight),
+                      width: double.infinity,
+                      child: image.isNotEmpty
+                          ? (image.startsWith('http')
+                              ? Image.network(image, fit: BoxFit.cover)
+                              : Image.asset(image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.coffee, size: 80, color: colors.textMuted)))
+                          : Icon(Icons.coffee, size: 80, color: colors.textMuted),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              if (description.isNotEmpty) ...[
-                Text(
-                  'Description',
-                  style: GoogleFonts.readexPro(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: GoogleFonts.openSans(
-                    fontSize: 14,
-                    height: 1.5,
-                    color: colors.textSecondary,
+                const SizedBox(height: 20),
+                Card(
+                  child: ListTile(
+                    title: Text(
+                      name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.readexPro(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '\$$priceVal',
+                      style: GoogleFonts.openSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colors.accentGold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-              ],
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                if (description.isNotEmpty) ...[
                   Text(
-                    'Selected Size',
-                    style: GoogleFonts.openSans(
+                    'Description',
+                    style: GoogleFonts.readexPro(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Text(
-                    widget.size,
-                    style: TextStyle(color: colors.textSecondary, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Text(
-                    'Quantity',
+                    description,
                     style: GoogleFonts.openSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
+                      fontSize: 14,
+                      height: 1.5,
+                      color: colors.textSecondary,
                     ),
                   ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: colors.accentGoldSubtle,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: colors.accentGold),
-                    ),
-                    child: Text(
-                      widget.quantity.toString(),
-                      style: TextStyle(color: colors.accentGold, fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                  const SizedBox(height: 16),
                 ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : () => handleAddToCart(context),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Add to Cart'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Selected Size',
+                      style: GoogleFonts.openSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      widget.size,
+                      style: TextStyle(color: colors.textSecondary, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text(
+                      'Quantity',
+                      style: GoogleFonts.openSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: colors.accentGoldSubtle,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: colors.accentGold),
+                      ),
+                      child: Text(
+                        widget.quantity.toString(),
+                        style: TextStyle(color: colors.accentGold, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : () => handleAddToCart(context),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Add to Cart'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

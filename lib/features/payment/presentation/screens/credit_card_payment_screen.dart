@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/order/domain/entities/order_entity.dart';
@@ -124,35 +125,31 @@ class _CreditCardPaymentScreenState extends ConsumerState<CreditCardPaymentScree
         size: size,
         quantity: quantity,
         totalPrice: double.tryParse(totalPrice) ?? 0.0,
-        status: 'pending',
-        paymentMethod: 'credit card',
+        status: 'Completed',
+        paymentMethod: 'Credit Card',
         orderDate: DateTime.now(),
       );
 
-      final success = await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
+      final placeOrderUseCase = ref.read(placeOrderUseCaseProvider);
+      await placeOrderUseCase(order);
 
       if (!mounted) return;
-      if (success) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text("Payment processed successfully!")),
-        );
-        navigator.popUntil((route) => route.isFirst);
-      } else {
-        messenger.showSnackBar(
-          const SnackBar(content: Text("Failed to process payment")),
-        );
-      }
+      messenger.showSnackBar(
+        const SnackBar(content: Text("Payment successful! Order placed.")),
+      );
+      navigator.popUntil((route) => route.isFirst);
     } catch (e) {
-      if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text("Error ordering item: $e")),
-        );
-      }
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text("Payment failed: $e")),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.solcafeColors;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -164,168 +161,183 @@ class _CreditCardPaymentScreenState extends ConsumerState<CreditCardPaymentScree
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 265,
-              child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  final angle = _animation.value * 3.1416;
-                  final isFront = angle <= 3.1416 / 2;
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: ConstrainedCenterContainer(
+            maxWidth: 520,
+            child: Column(
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: 360,
+                    height: 230,
+                    child: AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        final angle = _animation.value * 3.1416;
+                        final isFront = angle <= 3.1416 / 2;
 
-                  return Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.identity()
-                      ..setEntry(3, 2, 0.001)
-                      ..rotateY(angle),
-                    child: isFront
-                        ? CreditFront(
-                            cardnumber: cardnumbercontroller.text,
-                            expiry: expirydatecontroller.text,
-                            cardholder: cardholdercontroller.text,
-                          )
-                        : Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.identity()..rotateY(3.1416),
-                            child: CreditBack(cvv: cvvcontroller.text),
-                          ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 30),
-            Form(
-              key: formkey,
-              child: Column(
-                children: [
-                  Center(
-                    child: Text(
-                      "Credit card details",
-                      style: GoogleFonts.inter(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                      ),
+                        return Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.001)
+                            ..rotateY(angle),
+                          child: isFront
+                              ? CreditFront(
+                                  cardnumber: cardnumbercontroller.text,
+                                  expiry: expirydatecontroller.text,
+                                  cardholder: cardholdercontroller.text,
+                                )
+                              : Transform(
+                                  alignment: Alignment.center,
+                                  transform: Matrix4.identity()..rotateY(3.1416),
+                                  child: CreditBack(cvv: cvvcontroller.text),
+                                ),
+                        );
+                      },
                     ),
                   ),
-                  CustomTextFormField(
-                    keyboardtype: const TextInputType.numberWithOptions(),
-                    controller: cardnumbercontroller,
-                    labelText: "Card number",
-                    hintText: "XXXX XXXX XXXX XXXX",
-                    prefixIcon: Icons.credit_card_outlined,
-                    maxLength: 19,
-                    suffixText: "16",
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      topRight: Radius.circular(10),
-                    ),
-                    validator: (value) {
-                      String cleaned = value?.replaceAll(' ', '') ?? '';
-                      if (cleaned.length != 16) {
-                        return "Please enter a valid 16-digit card number";
-                      }
-                      return null;
-                    },
-                    onChanged: (value) => setState(() => cardnumber = value),
-                  ),
-                  CustomTextFormField(
-                    controller: cardholdercontroller,
-                    labelText: "Card holder name",
-                    hintText: "Name surname",
-                    prefixIcon: Icons.person_outline,
-                    borderRadius: BorderRadius.zero,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter card holder name";
-                      }
-                      return null;
-                    },
-                    onChanged: (value) => setState(() => cardholdername = value),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                ),
+                const SizedBox(height: 20),
+                Form(
+                  key: formkey,
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: CustomTextFormField(
-                          padding: const EdgeInsets.fromLTRB(20, 5, 5, 5),
-                          keyboardtype: TextInputType.datetime,
-                          controller: expirydatecontroller,
-                          labelText: "Valid Upto (MM/YY)",
-                          hintText: "MM/YY",
-                          prefixIcon: Icons.calendar_today,
-                          maxLength: 5,
-                          suffixText: "5",
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(10),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.length != 5) {
-                              return "Please enter expiry date in MM/YY format";
-                            }
-                            return null;
-                          },
-                          onChanged: (value) => setState(() => expirydate = value),
+                      Text(
+                        "Credit card details",
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: colors.textPrimary,
                         ),
                       ),
-                      Expanded(
-                        child: CustomTextFormField(
-                          padding: const EdgeInsets.fromLTRB(5, 5, 20, 5),
-                          keyboardtype: TextInputType.number,
-                          controller: cvvcontroller,
-                          labelText: "CVV",
-                          hintText: "***",
-                          prefixIcon: Icons.lock_outline,
-                          maxLength: 3,
-                          suffixText: "3",
-                          obscureText: true,
-                          focusNode: cvvFocusNode,
-                          borderRadius: const BorderRadius.only(
-                            bottomRight: Radius.circular(10),
+                      const SizedBox(height: 16),
+                      CustomTextFormField(
+                        keyboardtype: const TextInputType.numberWithOptions(),
+                        controller: cardnumbercontroller,
+                        labelText: "Card number",
+                        hintText: "XXXX XXXX XXXX XXXX",
+                        prefixIcon: Icons.credit_card_outlined,
+                        maxLength: 19,
+                        suffixText: "16",
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                        ),
+                        validator: (value) {
+                          String cleaned = value?.replaceAll(' ', '') ?? '';
+                          if (cleaned.length != 16) {
+                            return "Please enter a valid 16-digit card number";
+                          }
+                          return null;
+                        },
+                        onChanged: (value) => setState(() => cardnumber = value),
+                      ),
+                      CustomTextFormField(
+                        controller: cardholdercontroller,
+                        labelText: "Card holder name",
+                        hintText: "Name surname",
+                        prefixIcon: Icons.person_outline,
+                        borderRadius: BorderRadius.zero,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter card holder name";
+                          }
+                          return null;
+                        },
+                        onChanged: (value) => setState(() => cardholdername = value),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextFormField(
+                              padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
+                              keyboardtype: TextInputType.datetime,
+                              controller: expirydatecontroller,
+                              labelText: "Valid Upto (MM/YY)",
+                              hintText: "MM/YY",
+                              prefixIcon: Icons.calendar_today,
+                              maxLength: 5,
+                              suffixText: "5",
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(10),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.length != 5) {
+                                  return "Enter MM/YY";
+                                }
+                                return null;
+                              },
+                              onChanged: (value) => setState(() => expirydate = value),
+                            ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.length != 3) {
-                              return "Please enter a valid 3-digit CVV";
+                          Expanded(
+                            child: CustomTextFormField(
+                              padding: const EdgeInsets.fromLTRB(4, 5, 0, 5),
+                              keyboardtype: TextInputType.number,
+                              controller: cvvcontroller,
+                              labelText: "CVV",
+                              hintText: "***",
+                              prefixIcon: Icons.lock_outline,
+                              maxLength: 3,
+                              suffixText: "3",
+                              obscureText: true,
+                              focusNode: cvvFocusNode,
+                              borderRadius: const BorderRadius.only(
+                                bottomRight: Radius.circular(10),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.length != 3) {
+                                  return "Enter CVV";
+                                }
+                                return null;
+                              },
+                              onChanged: (value) => setState(() => cvv = value),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colors.accentGold,
+                            foregroundColor: colors.textOnAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (formkey.currentState!.validate()) {
+                              placingorder(
+                                itemId: widget.itemid,
+                                size: widget.size,
+                                quantity: widget.quantity,
+                                totalPrice: widget.totalprice,
+                                image: widget.image,
+                                itemname: widget.name,
+                              );
                             }
-                            return null;
                           },
-                          onChanged: (value) => setState(() => cvv = value),
+                          child: Text(
+                            "Pay \$${widget.totalprice}",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF432D25),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 15,
-                      ),
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () async {
-                      if (formkey.currentState!.validate()) {
-                        await placingorder(
-                          itemId: widget.itemid,
-                          size: widget.size,
-                          quantity: widget.quantity,
-                          totalPrice: widget.totalprice,
-                          image: widget.image,
-                          itemname: widget.name,
-                        );
-                      }
-                    },
-                    child: const Text(
-                      "Process Payment",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -336,34 +348,32 @@ class CustomTextFormField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
   final String hintText;
-  final String? label;
-  final TextInputType? keyboardtype;
   final IconData prefixIcon;
   final int? maxLength;
   final String? suffixText;
   final bool obscureText;
-  final BorderRadius borderRadius;
-  final String? Function(String?) validator;
-  final Function(String)? onChanged;
   final FocusNode? focusNode;
-  final EdgeInsetsGeometry? padding;
+  final BorderRadius borderRadius;
+  final FormFieldValidator<String>? validator;
+  final ValueChanged<String>? onChanged;
+  final TextInputType? keyboardtype;
+  final EdgeInsetsGeometry padding;
 
   const CustomTextFormField({
     super.key,
-    this.padding,
-    this.label,
     required this.controller,
     required this.labelText,
     required this.hintText,
     required this.prefixIcon,
-    this.keyboardtype,
     this.maxLength,
     this.suffixText,
     this.obscureText = false,
-    this.borderRadius = BorderRadius.zero,
-    required this.validator,
-    this.onChanged,
     this.focusNode,
+    this.borderRadius = BorderRadius.zero,
+    this.validator,
+    this.onChanged,
+    this.keyboardtype,
+    this.padding = const EdgeInsets.symmetric(vertical: 5),
   });
 
   @override
@@ -371,34 +381,35 @@ class CustomTextFormField extends StatelessWidget {
     final colors = context.solcafeColors;
 
     return Padding(
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: padding,
       child: TextFormField(
         controller: controller,
-        focusNode: focusNode,
         obscureText: obscureText,
-        keyboardType: keyboardtype,
+        focusNode: focusNode,
         maxLength: maxLength,
+        keyboardType: keyboardtype,
         validator: validator,
         onChanged: onChanged,
         style: TextStyle(color: colors.textPrimary),
         decoration: InputDecoration(
-          floatingLabelBehavior: FloatingLabelBehavior.never,
-          counterText: "",
-          suffixText: suffixText,
+          counterText: '',
           labelText: labelText,
-          hintText: hintText,
           labelStyle: TextStyle(color: colors.textSecondary),
+          hintText: hintText,
+          hintStyle: TextStyle(color: colors.textMuted),
           prefixIcon: Icon(prefixIcon, color: colors.accentGold),
+          filled: true,
+          fillColor: colors.cardBackground,
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: colors.borderSubtle),
+            borderRadius: borderRadius,
+          ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: colors.borderSubtle),
             borderRadius: borderRadius,
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: colors.borderFocused, width: 1.5),
-            borderRadius: borderRadius,
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: colors.borderSubtle),
+            borderSide: BorderSide(color: colors.accentGold),
             borderRadius: borderRadius,
           ),
         ),
@@ -458,86 +469,94 @@ class CreditFront extends StatelessWidget {
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(16),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: getCardGradient(context),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Credit Card",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFF5E1C0),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Image.asset(
-                    "assets/images/credit chip.jpg",
-                    height: 40,
-                    width: 50,
-                  ),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: Text(
-                      displaycardnumber,
-                      style: const TextStyle(
-                        letterSpacing: 4,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+        margin: EdgeInsets.zero,
+        child: Container(
+          width: 350,
+          height: 210,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: getCardGradient(context),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Credit Card",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFFF5E1C0),
                       ),
                     ),
+                    Image.asset(
+                      "assets/images/credit chip.jpg",
+                      height: 35,
+                      width: 45,
+                      errorBuilder: (_, __, ___) => const SizedBox(),
+                    ),
+                  ],
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    displaycardnumber,
+                    style: const TextStyle(
+                      letterSpacing: 3,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFF5E1C0),
+                    ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: Text(
-                          "Valid\n Upto: $expiry",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFFD8BEB4),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "EXPIRED: ${expiry.isEmpty ? 'MM/YY' : expiry}",
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFD8BEB4),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 2),
+                          Text(
+                            cardholder.isEmpty ? "CARDHOLDER NAME" : cardholder.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                              fontSize: 13,
+                              color: Color(0xFFF5E1C0),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        cardholder.toUpperCase(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                          fontSize: 15,
-                          color: Color(0xFFF5E1C0),
-                        ),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: Image.asset(
+                        "assets/images/visa.png",
+                        fit: BoxFit.cover,
+                        height: 35,
+                        width: 45,
+                        errorBuilder: (_, __, ___) => const SizedBox(),
                       ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
-                        child: Image.asset(
-                          "assets/images/visa.png",
-                          fit: BoxFit.cover,
-                          height: 40,
-                          width: 50,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -545,7 +564,6 @@ class CreditFront extends StatelessWidget {
     );
   }
 }
-
 
 class CreditBack extends StatelessWidget {
   final String cvv;
@@ -556,25 +574,25 @@ class CreditBack extends StatelessWidget {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      margin: const EdgeInsets.all(16),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 380),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            gradient: const CreditFront(
-              cardnumber: '',
-              expiry: '',
-              cardholder: '',
-            ).getCardGradient(context),
-          ),
+      margin: EdgeInsets.zero,
+      child: Container(
+        width: 350,
+        height: 210,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          gradient: const CreditFront(
+            cardnumber: '',
+            expiry: '',
+            cardholder: '',
+          ).getCardGradient(context),
+        ),
         child: Padding(
-          padding: const EdgeInsets.only(top: 20, bottom: 20),
+          padding: const EdgeInsets.only(top: 16, bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                height: 50,
+                height: 45,
                 width: double.maxFinite,
                 color: Colors.black87,
               ),
@@ -582,7 +600,7 @@ class CreditBack extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: Container(
-                  width: 250,
+                  width: 230,
                   color: const Color.fromARGB(255, 211, 201, 201),
                   padding: const EdgeInsets.symmetric(
                     vertical: 5,
@@ -613,4 +631,3 @@ typedef Creditcard = CreditCardPaymentScreen;
 typedef creditfront = CreditFront;
 // ignore: camel_case_types
 typedef creditBack = CreditBack;
-
