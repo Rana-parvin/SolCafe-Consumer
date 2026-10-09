@@ -47,16 +47,26 @@ class _MenuoptionsState extends ConsumerState<Menuoptions> {
     final currentUser = ref.watch(currentUserProvider);
     final emailid = currentUser?.email;
     final username = currentUser?.displayName;
-    final colors = context.solcafeColors;
+    // Navigation drawer strictly uses fixed dark-mode theme in both light and dark app modes
+    final colors = SolCafeColors.dark;
 
-    return Drawer(
-      backgroundColor: colors.drawerBackground,
-      child: Column(
-        children: [
-          // 1. Branded Header (Top)
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
-            decoration: BoxDecoration(color: colors.drawerHeaderBackground),
+    return Theme(
+      data: ThemeData.dark().copyWith(
+        canvasColor: colors.drawerBackground,
+        dividerColor: colors.borderSubtle,
+        colorScheme: const ColorScheme.dark(
+          surface: Color(0xFF22150D),
+          primary: Color(0xFFE5B25D),
+        ),
+      ),
+      child: Drawer(
+        backgroundColor: colors.drawerBackground,
+        child: Column(
+          children: [
+            // 1. Branded Header (Top)
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
+              decoration: BoxDecoration(color: colors.drawerHeaderBackground),
             child: Row(
               children: [
                 const DrawerLogo(size: 44),
@@ -257,7 +267,8 @@ class _MenuoptionsState extends ConsumerState<Menuoptions> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Future<void> logout(BuildContext context) async {
