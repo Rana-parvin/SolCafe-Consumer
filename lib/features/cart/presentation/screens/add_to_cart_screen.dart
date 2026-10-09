@@ -8,6 +8,7 @@ import 'package:solcafe/features/cart/data/models/cart_item_model.dart';
 import 'package:solcafe/features/cart/presentation/providers/cart_provider.dart';
 import 'package:solcafe/features/cart/presentation/screens/cart_screen.dart';
 import 'package:solcafe/features/cart/presentation/widgets/added_to_cart_dialog.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 class AddToCartScreen extends ConsumerStatefulWidget {
   final String itemId;
@@ -95,6 +96,7 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
     final String description = widget.itemData['description'] ?? '';
     final colors = context.solcafeColors;
     final imageHeight = SolCafeBreakpoints.isLandscape(context) ? 160.0 : 250.0;
+    final currency = ref.watch(currencySymbolProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add to Cart')),
@@ -135,7 +137,7 @@ class _AddToCartScreenState extends ConsumerState<AddToCartScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      '\$$priceVal',
+                      '$currency$priceVal',
                       style: GoogleFonts.openSans(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

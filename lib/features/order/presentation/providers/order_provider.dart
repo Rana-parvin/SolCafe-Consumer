@@ -38,18 +38,18 @@ class OrderPaymentNotifier extends Notifier<AsyncValue<void>> {
     return const AsyncData(null);
   }
 
-  Future<bool> placeOrder(OrderEntity order) async {
-    if (state.isLoading) return false;
+  Future<String?> placeOrder(OrderEntity order) async {
+    if (state.isLoading) return null;
 
     state = const AsyncLoading();
     try {
       final placeOrderUseCase = ref.read(placeOrderUseCaseProvider);
-      await placeOrderUseCase(order);
+      final orderId = await placeOrderUseCase(order);
       state = const AsyncData(null);
-      return true;
+      return orderId;
     } catch (e, st) {
       state = AsyncError(e, st);
-      return false;
+      return null;
     }
   }
 }

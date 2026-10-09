@@ -6,6 +6,7 @@ import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/order/domain/entities/order_entity.dart';
 import 'package:solcafe/features/order/presentation/providers/order_provider.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 class CreditCardPaymentScreen extends ConsumerStatefulWidget {
   final String itemid;
@@ -149,6 +150,7 @@ class _CreditCardPaymentScreenState extends ConsumerState<CreditCardPaymentScree
   @override
   Widget build(BuildContext context) {
     final colors = context.solcafeColors;
+    final currency = ref.watch(currencySymbolProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -324,7 +326,7 @@ class _CreditCardPaymentScreenState extends ConsumerState<CreditCardPaymentScree
                             }
                           },
                           child: Text(
-                            "Pay \$${widget.totalprice}",
+                            "Pay $currency${widget.totalprice}",
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

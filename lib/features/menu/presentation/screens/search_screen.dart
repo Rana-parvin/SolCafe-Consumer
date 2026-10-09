@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/menu/domain/entities/menu_item_entity.dart';
 import 'package:solcafe/features/menu/domain/usecases/search_menu_items_usecase.dart';
 import 'package:solcafe/features/menu/presentation/screens/product_detail_screen.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 class FirestoreSearchDelegate extends SearchDelegate<String> {
   final SearchMenuItemsUseCase? searchMenuItemsUseCase;
@@ -123,6 +125,7 @@ class FirestoreSearchDelegate extends SearchDelegate<String> {
           }
 
           final items = snapshot.data!;
+          final currency = ProviderScope.containerOf(context).read(currencySymbolProvider);
 
           return ConstrainedCenterContainer(
             maxWidth: 800,
@@ -154,7 +157,7 @@ class FirestoreSearchDelegate extends SearchDelegate<String> {
                       style: TextStyle(fontWeight: FontWeight.bold, color: colors.textPrimary),
                     ),
                     subtitle: Text(
-                      "Price: \$${price.toStringAsFixed(2)}",
+                      "Price: $currency${price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2)}",
                       style: TextStyle(color: colors.accentGold, fontWeight: FontWeight.w600),
                     ),
                     onTap: () {

@@ -9,7 +9,7 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<void> placeOrder(OrderEntity order) {
+  Future<String> placeOrder(OrderEntity order) {
     final model = OrderModel(
       id: order.id,
       userId: order.userId,

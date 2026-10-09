@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/order/presentation/screens/confirm_order_screen.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
-class CartItemDetailsScreen extends StatelessWidget {
+class CartItemDetailsScreen extends ConsumerWidget {
   final String itemId;
   final Map<String, dynamic> itemData;
 
@@ -28,9 +30,10 @@ class CartItemDetailsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.solcafeColors;
     final imageHeight = SolCafeBreakpoints.isLandscape(context) ? 160.0 : 250.0;
+    final currency = ref.watch(currencySymbolProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -77,7 +80,7 @@ class CartItemDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      "\$${price.toStringAsFixed(2)}",
+                      "$currency${price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2)}",
                       style: GoogleFonts.openSans(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

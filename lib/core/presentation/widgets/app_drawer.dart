@@ -76,12 +76,12 @@ class _MenuoptionsState extends ConsumerState<Menuoptions> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      "COFFEE & MORE",
+                      "Coffee and more",
                       style: GoogleFonts.readexPro(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: colors.accentGold,
-                        letterSpacing: 1.5,
+                        letterSpacing: 1.0,
                       ),
                     ),
                   ],

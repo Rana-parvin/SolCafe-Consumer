@@ -36,11 +36,27 @@ class DrawerLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Image.asset(
       "assets/images/cup icon.png",
       height: size,
       width: size,
       fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Container(
+        width: size,
+        height: size,
+        padding: EdgeInsets.all(size * 0.12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF32231A) : const Color(0xFFFFF7ED),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.coffee_rounded,
+          size: size * 0.7,
+          color: const Color(0xFFE5B25D),
+        ),
+      ),
     );
   }
 }

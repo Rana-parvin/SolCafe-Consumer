@@ -3,7 +3,7 @@ import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart'
 import 'package:solcafe/features/order/domain/entities/order_entity.dart';
 import 'package:solcafe/features/order/presentation/providers/order_provider.dart';
 
-Future<bool> createCashOnDeliveryOrder({
+Future<String?> createCashOnDeliveryOrder({
   required WidgetRef ref,
   required String itemId,
   required String size,
@@ -16,7 +16,7 @@ Future<bool> createCashOnDeliveryOrder({
   try {
     final currentUser = ref.read(currentUserProvider);
     final uid = userId ?? currentUser?.uid ?? '';
-    if (uid.isEmpty) return false;
+    if (uid.isEmpty) return null;
 
     final order = OrderEntity(
       id: '',
@@ -34,6 +34,6 @@ Future<bool> createCashOnDeliveryOrder({
 
     return await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
   } catch (e) {
-    return false;
+    return null;
   }
 }

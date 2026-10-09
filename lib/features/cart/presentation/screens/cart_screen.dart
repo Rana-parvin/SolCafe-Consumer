@@ -6,6 +6,7 @@ import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart'
 import 'package:solcafe/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:solcafe/features/cart/presentation/providers/cart_provider.dart';
 import 'package:solcafe/features/cart/presentation/screens/cart_item_details_screen.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -14,6 +15,7 @@ class CartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.solcafeColors;
     final user = ref.watch(currentUserProvider);
+    final currency = ref.watch(currencySymbolProvider);
     if (user == null) {
       return Scaffold(
         body: Center(
@@ -107,7 +109,7 @@ class CartScreen extends ConsumerWidget {
                                     Text("Quantity: ${cartItem.quantity}", style: TextStyle(color: colors.textSecondary, fontSize: 13)),
                                     const SizedBox(height: 4),
                                     Text(
-                                      "Total: \$${cartItem.totalPrice.toStringAsFixed(2)}",
+                                      "Total: $currency${cartItem.totalPrice.toStringAsFixed(cartItem.totalPrice.truncateToDouble() == cartItem.totalPrice ? 0 : 2)}",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: colors.accentGold,

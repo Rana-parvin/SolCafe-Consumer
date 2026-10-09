@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solcafe/core/presentation/widgets/responsive_layout.dart';
 import 'package:solcafe/core/theme/solcafe_colors.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 String generateReferralCode(int length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -16,14 +18,14 @@ String generateReferralCode(int length) {
   );
 }
 
-class ReferralScreen extends StatefulWidget {
+class ReferralScreen extends ConsumerStatefulWidget {
   const ReferralScreen({super.key});
 
   @override
-  State<ReferralScreen> createState() => _ReferralScreenState();
+  ConsumerState<ReferralScreen> createState() => _ReferralScreenState();
 }
 
-class _ReferralScreenState extends State<ReferralScreen> {
+class _ReferralScreenState extends ConsumerState<ReferralScreen> {
   late final String referralCode;
 
   @override
@@ -35,6 +37,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.solcafeColors;
+    final currency = ref.watch(currencySymbolProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +74,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                       const Icon(Icons.card_giftcard, size: 50, color: Colors.white),
                       const SizedBox(height: 12),
                       Text(
-                        "Give \$5, Get \$5",
+                        "Give ${currency}5, Get ${currency}5",
                         style: GoogleFonts.readexPro(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
