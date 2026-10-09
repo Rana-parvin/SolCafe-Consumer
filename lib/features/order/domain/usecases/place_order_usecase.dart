@@ -6,7 +6,7 @@ class PlaceOrderUseCase {
 
   PlaceOrderUseCase(this.repository);
 
-  Future<void> call(OrderEntity order) {
+  Future<String> call(OrderEntity order) {
     return repository.placeOrder(order);
   }
 }

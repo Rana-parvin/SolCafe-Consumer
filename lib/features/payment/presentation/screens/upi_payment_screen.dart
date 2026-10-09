@@ -32,7 +32,8 @@ Future<bool> upiPayment({
       orderDate: DateTime.now(),
     );
 
-    return await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
+    final orderId = await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
+    return orderId != null;
   } catch (e) {
     return false;
   }

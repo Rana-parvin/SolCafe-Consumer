@@ -6,6 +6,7 @@ import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/auth/presentation/providers/auth_provider.dart';
 import 'package:solcafe/features/order/domain/entities/order_entity.dart';
 import 'package:solcafe/features/order/presentation/providers/order_provider.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 class NetBankingPaymentScreen extends ConsumerStatefulWidget {
   final String itemid;
@@ -44,6 +45,7 @@ class _NetBankingPaymentScreenState extends ConsumerState<NetBankingPaymentScree
     final colors = context.solcafeColors;
     final paymentState = ref.watch(orderPaymentNotifierProvider);
     final isLoading = paymentState.isLoading;
+    final currency = ref.watch(currencySymbolProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -90,7 +92,7 @@ class _NetBankingPaymentScreenState extends ConsumerState<NetBankingPaymentScree
                         ),
                       ),
                       Text(
-                        "\$${widget.totalprice}",
+                        "$currency${widget.totalprice}",
                         style: GoogleFonts.readexPro(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -217,7 +219,8 @@ class _NetBankingPaymentScreenState extends ConsumerState<NetBankingPaymentScree
       orderDate: DateTime.now(),
     );
 
-    final success = await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
+    final orderId = await ref.read(orderPaymentNotifierProvider.notifier).placeOrder(order);
+    final success = orderId != null;
 
     if (!mounted) return;
     if (success) {

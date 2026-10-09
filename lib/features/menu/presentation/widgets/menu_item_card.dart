@@ -5,6 +5,7 @@ import 'package:solcafe/core/theme/solcafe_colors.dart';
 import 'package:solcafe/features/menu/domain/entities/menu_item_entity.dart';
 import 'package:solcafe/features/menu/presentation/providers/menu_provider.dart';
 import 'package:solcafe/features/menu/presentation/screens/product_detail_screen.dart';
+import 'package:solcafe/features/settings/presentation/providers/currency_provider.dart';
 
 class MenuItemCard extends ConsumerWidget {
   final String? category;
@@ -15,6 +16,7 @@ class MenuItemCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(menuItemsStreamProvider(category));
     final colors = context.solcafeColors;
+    final currency = ref.watch(currencySymbolProvider);
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -55,7 +57,7 @@ class MenuItemCard extends ConsumerWidget {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    return _buildItemTile(context, colors, item);
+                    return _buildItemTile(context, colors, item, currency);
                   },
                 ),
               ),
@@ -69,7 +71,7 @@ class MenuItemCard extends ConsumerWidget {
               final item = items[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: _buildItemTile(context, colors, item),
+                child: _buildItemTile(context, colors, item, currency),
               );
             },
           );
@@ -87,7 +89,7 @@ class MenuItemCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildItemTile(BuildContext context, SolCafeColors colors, MenuItemEntity item) {
+  Widget _buildItemTile(BuildContext context, SolCafeColors colors, MenuItemEntity item, String currency) {
     final String name = item.title;
     final String subdesc = item.description;
     final String imagePath = item.image;
@@ -151,7 +153,7 @@ class MenuItemCard extends ConsumerWidget {
                   border: Border.all(color: colors.accentGold.withValues(alpha: 0.4)),
                 ),
                 child: Text(
-                  "\$$priceVal",
+                  "$currency$priceVal",
                   style: TextStyle(
                     color: colors.accentGold,
                     fontWeight: FontWeight.bold,

@@ -1,3 +1,16 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "gradle.nestedProjects.detect": "false",
+  "gradle.autoDetect": "off",
+  "files.exclude": {
+    "**/windows/flutter/ephemeral": true,
+    "**/.plugin_symlinks": true,
+    "**/.dart_tool": true
+  },
+  "java.project.explorer.exclude": [
+    "**/windows/flutter/ephemeral/**",
+    "**/.plugin_symlinks/**",
+    "**/.dart_tool/**",
+    "**/build/**"
+  ]
 }
